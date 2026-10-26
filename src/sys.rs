@@ -50,6 +50,7 @@ pub struct CGPoint {
 }
 
 pub const kCGWindowListOptionAll: u32 = 0;
+pub const kCGWindowListOptionOnScreenOnly: u32 = 1 << 0;
 pub const kCGWindowListOptionIncludingWindow: u32 = 1 << 3;
 pub const kCGWindowListExcludeDesktopElements: u32 = 1 << 4;
 

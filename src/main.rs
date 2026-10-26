@@ -305,6 +305,11 @@ fn ax_attribute(element: AXUIElementRef, name: &str) -> Option<Cf> {
 }
 
 fn focused_window() -> u32 {
+    let wid = ax_focused_window();
+    if wid != 0 { wid } else { front_window_of(frontmost_pid()) }
+}
+
+fn ax_focused_window() -> u32 {
     unsafe {
         let system = Cf(AXUIElementCreateSystemWide());
         AXUIElementSetMessagingTimeout(system.get(), AX_TIMEOUT);
@@ -315,6 +320,35 @@ fn focused_window() -> u32 {
         _AXUIElementGetWindow(window.get(), &mut wid);
         wid
     }
+}
+
+fn frontmost_pid() -> i32 {
+    unsafe {
+        let workspace = msg(class(c"NSWorkspace"), sel(c"sharedWorkspace"));
+        let app = msg(workspace, sel(c"frontmostApplication"));
+        if app.is_null() { 0 } else { msg_i32(app, sel(c"processIdentifier")) }
+    }
+}
+
+/// Chrome often leaves the Accessibility focus query unanswered; the frontmost app's
+/// topmost on-screen window is its focused one.
+fn front_window_of(pid: i32) -> u32 {
+    if pid <= 0 {
+        return 0;
+    }
+    let list = Cf(unsafe { CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, 0) });
+    for w in each(list.get()) {
+        let field = |key: CFStringRef| unsafe { CFDictionaryGetValue(w, key) };
+        let bounds = field(unsafe { kCGWindowBounds });
+        if number_i64(field(unsafe { kCGWindowOwnerPID })) as i32 == pid
+            && number_i64(field(unsafe { kCGWindowLayer })) == 0
+            && number_f64(get(bounds, "Width")) >= 100.0
+            && number_f64(get(bounds, "Height")) >= 100.0
+        {
+            return number_i64(field(unsafe { kCGWindowNumber })) as u32;
+        }
+    }
+    0
 }
 
 fn owner_of_window(wid: u32) -> i32 {
@@ -462,11 +496,13 @@ fn state() -> String {
     let Some(display) = active_display() else { return "no display".into() };
     let here = display.desktops.iter().position(|&s| s == display.current).map_or("-".into(), |i| (i + 1).to_string());
     format!(
-        "display {} desktops {:?} current space {} (desktop {here}) focused window {} trusted {} operations {}",
+        "display {} desktops {:?} current space {} (desktop {here}) focused window {} (ax {}, front {}) trusted {} operations {}",
         string(display.uuid.get()),
         display.desktops,
         display.current,
         focused_window(),
+        ax_focused_window(),
+        front_window_of(frontmost_pid()),
         unsafe { AXIsProcessTrusted() },
         operations().is_some()
     )
