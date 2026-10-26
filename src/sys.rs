@@ -49,6 +49,22 @@ pub struct CGPoint {
     pub y: f64,
 }
 
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct CGSize {
+    pub width: f64,
+    pub height: f64,
+}
+
+// 4 doubles: an HFA passed in and returned through the SIMD registers on arm64,
+// so objc_msgSend (not the _stret variant) is correct for it.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct CGRect {
+    pub origin: CGPoint,
+    pub size: CGSize,
+}
+
 pub const kCGWindowListOptionAll: u32 = 0;
 pub const kCGWindowListOptionOnScreenOnly: u32 = 1 << 0;
 pub const kCGWindowListOptionIncludingWindow: u32 = 1 << 3;
@@ -206,5 +222,45 @@ pub unsafe fn msg_ptr_u64(obj: Id, sel: Sel, a: *const c_void, b: u64) -> Id {
 
 pub unsafe fn msg_isize(obj: Id, sel: Sel, a: isize) -> bool {
     let f: extern "C" fn(Id, Sel, isize) -> bool = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, a)
+}
+
+pub unsafe fn msg_f64(obj: Id, sel: Sel, a: f64) -> Id {
+    let f: extern "C" fn(Id, Sel, f64) -> Id = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, a)
+}
+
+pub unsafe fn msg_rect(obj: Id, sel: Sel, rect: CGRect) -> Id {
+    let f: extern "C" fn(Id, Sel, CGRect) -> Id = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, rect)
+}
+
+pub unsafe fn msg_window_init(obj: Id, sel: Sel, rect: CGRect, style: u64, backing: u64, defer: bool) -> Id {
+    let f: extern "C" fn(Id, Sel, CGRect, u64, u64, bool) -> Id = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, rect, style, backing, defer)
+}
+
+pub unsafe fn msg_set_isize(obj: Id, sel: Sel, a: isize) {
+    let f: extern "C" fn(Id, Sel, isize) = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, a)
+}
+
+pub unsafe fn msg_set_u64(obj: Id, sel: Sel, a: u64) {
+    let f: extern "C" fn(Id, Sel, u64) = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, a)
+}
+
+pub unsafe fn msg_set_bool(obj: Id, sel: Sel, a: bool) {
+    let f: extern "C" fn(Id, Sel, bool) = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, a)
+}
+
+pub unsafe fn msg_set_id(obj: Id, sel: Sel, a: Id) {
+    let f: extern "C" fn(Id, Sel, Id) = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, a)
+}
+
+pub unsafe fn msg_set_f64(obj: Id, sel: Sel, a: f64) {
+    let f: extern "C" fn(Id, Sel, f64) = std::mem::transmute(objc_msgSend as *const c_void);
     f(obj, sel, a)
 }

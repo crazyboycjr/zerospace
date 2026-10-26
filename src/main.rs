@@ -14,10 +14,11 @@
 
 mod sys;
 
-use std::ffi::{c_char, c_void};
+use std::ffi::{c_char, c_void, CStr};
 use std::io::{Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::ptr::{null, null_mut};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::OnceLock;
 use sys::*;
 
@@ -431,24 +432,107 @@ fn focus_soon(sid: u64, preferred: u32, except: u32) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Actions
+// On-screen indicator: a borderless "N" shown for half a second after a switch
+
+static OSD_WINDOW: AtomicUsize = AtomicUsize::new(0);
+static OSD_FIELD: AtomicUsize = AtomicUsize::new(0);
+static OSD_GENERATION: AtomicU64 = AtomicU64::new(0);
+const OSD_MS: i64 = 500;
+
+fn ns_color(name: &CStr) -> Id {
+    unsafe { msg(class(c"NSColor"), sel(name)) }
+}
+
+fn create_osd() {
+    unsafe {
+        let frame = CGRect { origin: CGPoint { x: 0.0, y: 0.0 }, size: CGSize { width: 200.0, height: 110.0 } };
+        let window = msg_window_init(msg(class(c"NSWindow"), sel(c"alloc")), sel(c"initWithContentRect:styleMask:backing:defer:"),
+                                     frame, 0 /* borderless */, 2 /* buffered */, false);
+        msg_set_isize(window, sel(c"setLevel:"), 1000);
+        msg_set_bool(window, sel(c"setOpaque:"), false);
+        msg_set_id(window, sel(c"setBackgroundColor:"), ns_color(c"clearColor"));
+        msg_set_bool(window, sel(c"setIgnoresMouseEvents:"), true);
+        msg_set_bool(window, sel(c"setHasShadow:"), true);
+        msg_set_bool(window, sel(c"setReleasedWhenClosed:"), false);
+        // canJoinAllSpaces | stationary | ignoresCycle | fullScreenAuxiliary, so it shows on the space we land on
+        msg_set_u64(window, sel(c"setCollectionBehavior:"), (1 << 0) | (1 << 4) | (1 << 6) | (1 << 8));
+
+        let view = msg_rect(msg(class(c"NSView"), sel(c"alloc")), sel(c"initWithFrame:"), frame);
+        msg_set_bool(view, sel(c"setWantsLayer:"), true);
+        let layer = msg(view, sel(c"layer"));
+        msg_set_f64(layer, sel(c"setCornerRadius:"), 22.0);
+        msg_set_bool(layer, sel(c"setMasksToBounds:"), true);
+        let background = msg_f64(ns_color(c"blackColor"), sel(c"colorWithAlphaComponent:"), 0.78);
+        msg_set_id(layer, sel(c"setBackgroundColor:"), msg(background, sel(c"CGColor")));
+        msg_set_id(window, sel(c"setContentView:"), view);
+
+        let field_frame = CGRect { origin: CGPoint { x: 0.0, y: 28.0 }, size: CGSize { width: 200.0, height: 58.0 } };
+        let field = msg_rect(msg(class(c"NSTextField"), sel(c"alloc")), sel(c"initWithFrame:"), field_frame);
+        msg_set_bool(field, sel(c"setEditable:"), false);
+        msg_set_bool(field, sel(c"setSelectable:"), false);
+        msg_set_bool(field, sel(c"setBezeled:"), false);
+        msg_set_bool(field, sel(c"setDrawsBackground:"), false);
+        msg_set_isize(field, sel(c"setAlignment:"), 2); // centered
+        msg_set_id(field, sel(c"setTextColor:"), ns_color(c"whiteColor"));
+        msg_set_id(field, sel(c"setFont:"), msg_f64(class(c"NSFont"), sel(c"boldSystemFontOfSize:"), 46.0));
+        msg_set_id(view, sel(c"addSubview:"), field);
+
+        OSD_WINDOW.store(window as usize, Ordering::SeqCst);
+        OSD_FIELD.store(field as usize, Ordering::SeqCst);
+    }
+}
+
+fn show_osd(text: &str) {
+    if OSD_WINDOW.load(Ordering::SeqCst) == 0 {
+        create_osd();
+    }
+    let window = OSD_WINDOW.load(Ordering::SeqCst) as Id;
+    let field = OSD_FIELD.load(Ordering::SeqCst) as Id;
+    if window.is_null() {
+        return;
+    }
+    unsafe {
+        let value = cfstr(text);
+        msg_set_id(field, sel(c"setStringValue:"), value.get() as Id);
+        msg(window, sel(c"center"));
+        msg(window, sel(c"orderFrontRegardless"));
+    }
+    let generation = OSD_GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
+    after_ms(OSD_MS, move || {
+        // Only hide if no newer switch has shown the indicator since
+        if OSD_GENERATION.load(Ordering::SeqCst) == generation {
+            unsafe { msg_set_id(OSD_WINDOW.load(Ordering::SeqCst) as Id, sel(c"orderOut:"), null_mut()) };
+        }
+    });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Actions. Desktops are numbered by their position in the Mission Control bar, full-screen
+// spaces included, so cmd+N can always reach the space the user sees in slot N.
+
+fn position_of(display: &Display, sid: u64) -> usize {
+    display.spaces.iter().position(|&s| s == sid).map_or(0, |i| i + 1)
+}
 
 fn go_to_desktop(n: usize) -> String {
     let Some(display) = active_display() else { return "no display".into() };
-    let Some(&target) = display.desktops.get(n) else {
-        return format!("no desktop {} (have {})", n + 1, display.desktops.len());
+    let Some(&target) = display.spaces.get(n) else {
+        return format!("no desktop {} (have {})", n + 1, display.spaces.len());
     };
-    if target == display.current {
-        return "already there".into();
+    if target != display.current {
+        activate_space(&display, target);
+        focus_soon(target, 0, 0);
     }
-    activate_space(&display, target);
-    focus_soon(target, 0, 0);
+    show_osd(&(n + 1).to_string());
     format!("desktop {} (space {target})", n + 1)
 }
 
 fn send_to_desktop(n: usize) -> String {
     let Some(display) = active_display() else { return "no display".into() };
-    let Some(&target) = display.desktops.get(n) else { return format!("no desktop {}", n + 1) };
+    let Some(&target) = display.spaces.get(n) else { return format!("no desktop {}", n + 1) };
+    if !display.desktops.contains(&target) {
+        return "slot is a full-screen app, can't send a window there".into();
+    }
     let wid = focused_window();
     if wid == 0 {
         return "no focused window".into();
@@ -458,25 +542,31 @@ fn send_to_desktop(n: usize) -> String {
     }
     move_window(wid, target);
     focus_soon(display.current, 0, wid);
+    show_osd(&format!("\u{2192}{}", n + 1)); // →N
     format!("window {wid} to desktop {}", n + 1)
 }
 
 fn carry(step: isize) -> String {
     let Some(display) = active_display() else { return "no display".into() };
-    let Some(here) = display.desktops.iter().position(|&s| s == display.current) else {
-        // On a full-screen app: just go to the nearest desktop in that direction
-        let position = display.spaces.iter().position(|&s| s == display.current).unwrap_or(0) as isize;
-        let mut i = position + step;
-        while i >= 0 && (i as usize) < display.spaces.len() {
-            let sid = display.spaces[i as usize];
-            if display.desktops.contains(&sid) {
-                activate_space(&display, sid);
-                focus_soon(sid, 0, 0);
-                return "left the full-screen app".into();
+    // Carry only lands on ordinary desktops; a window cannot sit in a full-screen app's space.
+    let here = match display.desktops.iter().position(|&s| s == display.current) {
+        Some(here) => here,
+        None => {
+            // On a full-screen app: step to the nearest ordinary desktop that way, no window moved
+            let from = display.spaces.iter().position(|&s| s == display.current).unwrap_or(0) as isize;
+            let mut i = from + step;
+            while i >= 0 && (i as usize) < display.spaces.len() {
+                let sid = display.spaces[i as usize];
+                if display.desktops.contains(&sid) {
+                    activate_space(&display, sid);
+                    focus_soon(sid, 0, 0);
+                    show_osd(&position_of(&display, sid).to_string());
+                    return "left the full-screen app".into();
+                }
+                i += step;
             }
-            i += step;
+            return "no desktop that way".into();
         }
-        return "no desktop that way".into();
     };
     let next = here as isize + step;
     if next < 0 || next as usize >= display.desktops.len() {
@@ -489,17 +579,19 @@ fn carry(step: isize) -> String {
     }
     activate_space(&display, target);
     focus_soon(target, wid, 0);
-    format!("window {wid} to desktop {}, following", next + 1)
+    show_osd(&position_of(&display, target).to_string());
+    format!("window {wid} to desktop {}, following", position_of(&display, target))
 }
 
 fn state() -> String {
     let Some(display) = active_display() else { return "no display".into() };
-    let here = display.desktops.iter().position(|&s| s == display.current).map_or("-".into(), |i| (i + 1).to_string());
     format!(
-        "display {} desktops {:?} current space {} (desktop {here}) focused window {} (ax {}, front {}) trusted {} operations {}",
+        "display {} spaces {:?} desktops {:?} current {} (slot {}) focused window {} (ax {}, front {}) trusted {} operations {}",
         string(display.uuid.get()),
+        display.spaces,
         display.desktops,
         display.current,
+        position_of(&display, display.current),
         focused_window(),
         ax_focused_window(),
         front_window_of(frontmost_pid()),
