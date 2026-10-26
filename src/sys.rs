@@ -77,6 +77,7 @@ extern "C" {
     pub static kCGWindowAlpha: CFStringRef;
     pub static kCGWindowBounds: CFStringRef;
     pub static kCGWindowOwnerPID: CFStringRef;
+    pub static kCGWindowOwnerName: CFStringRef;
     pub fn CGEventCreate(source: *const c_void) -> CFTypeRef;
     pub fn CGEventGetLocation(event: CFTypeRef) -> CGPoint;
     pub fn CGGetDisplaysWithPoint(point: CGPoint, max: u32, displays: *mut u32, count: *mut u32) -> i32;

@@ -35,5 +35,6 @@ printf 'go 3'      | nc -U ~/.cache/zerospace.sock
 printf 'send 2'    | nc -U ~/.cache/zerospace.sock
 printf 'carry left'| nc -U ~/.cache/zerospace.sock
 printf 'move 1568 4' | nc -U ~/.cache/zerospace.sock   # a given window to desktop 4
+printf 'peek'      | nc -U ~/.cache/zerospace.sock     # which window a jump back here would focus
 printf 'state'     | nc -U ~/.cache/zerospace.sock
 ```

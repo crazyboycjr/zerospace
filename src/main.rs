@@ -25,6 +25,10 @@ use sys::*;
 const AX_TIMEOUT: f32 = 0.25;
 // The bridged operations land asynchronously; raising a window earlier reorders the old desktop
 const FOCUS_DELAY_MS: i64 = 50;
+// Until the switch has landed, look again a little later before settling on Finder
+const FOCUS_RETRY_MS: i64 = 25;
+const FOCUS_RETRIES: u32 = 4;
+static FOCUS_GENERATION: AtomicU64 = AtomicU64::new(0);
 
 fn log(message: &str) {
     let mut tm: Tm = unsafe { std::mem::zeroed() };
@@ -386,36 +390,33 @@ fn focus_window(wid: u32) {
     }
 }
 
-/// Hidden apps (cmd+H, or hidden through NSRunningApplication like xsp's scratchpads) keep their
-/// windows in the full window list; focusing one would unhide its app.
-fn app_is_hidden(pid: i32) -> bool {
-    unsafe {
-        let app = msg_pid(class(c"NSRunningApplication"), sel(c"runningApplicationWithProcessIdentifier:"), pid);
-        !app.is_null() && msg_bool(app, sel(c"isHidden"))
-    }
-}
-
-/// The frontmost ordinary window on a desktop, skipping `except`.
-fn top_window_on(sid: u64, except: u32) -> u32 {
-    let list = Cf(unsafe { CGWindowListCopyWindowInfo(kCGWindowListOptionAll | kCGWindowListExcludeDesktopElements, 0) });
+/// The frontmost window on screen on a desktop, skipping `except`: the one macOS itself would
+/// focus. The full window list is no use here: it keeps hidden apps' windows (cmd+H, or xsp's
+/// scratchpads hidden through kAXHidden), minimized windows and ordered-out helpers (a Chrome
+/// popup, Tailscale's window) on their desktop, in no z-order. The on-screen list runs front to
+/// back and holds none of them, so this is only asked once the switch has landed.
+fn visible_window_on(sid: u64, except: u32) -> u32 {
+    let list = Cf(unsafe { CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, 0) });
     for w in each(list.get()) {
         let field = |key: CFStringRef| unsafe { CFDictionaryGetValue(w, key) };
         let wid = number_i64(field(unsafe { kCGWindowNumber })) as u32;
         let bounds = field(unsafe { kCGWindowBounds });
-        if wid == except
-            || number_i64(field(unsafe { kCGWindowLayer })) != 0
-            || number_f64(field(unsafe { kCGWindowAlpha })) <= 0.0
-            || number_f64(get(bounds, "Width")) < 100.0
-            || number_f64(get(bounds, "Height")) < 100.0
-            || app_is_hidden(number_i64(field(unsafe { kCGWindowOwnerPID })) as i32)
+        if wid != except
+            && number_i64(field(unsafe { kCGWindowLayer })) == 0
+            && number_f64(field(unsafe { kCGWindowAlpha })) > 0.0
+            && number_f64(get(bounds, "Width")) >= 100.0
+            && number_f64(get(bounds, "Height")) >= 100.0
+            && space_of_window(wid) == sid
         {
-            continue;
-        }
-        if space_of_window(wid) == sid {
             return wid;
         }
     }
     0
+}
+
+fn owner_name(wid: u32) -> String {
+    let list = Cf(unsafe { CGWindowListCopyWindowInfo(kCGWindowListOptionIncludingWindow, wid) });
+    each(list.get()).next().map(|w| string(unsafe { CFDictionaryGetValue(w, kCGWindowOwnerName) })).unwrap_or_default()
 }
 
 fn finder_pid() -> i32 {
@@ -427,18 +428,32 @@ fn finder_pid() -> i32 {
 }
 
 fn focus_soon(sid: u64, preferred: u32, except: u32) {
-    after_ms(FOCUS_DELAY_MS, move || {
-        let wid = if preferred != 0 { preferred } else { top_window_on(sid, except) };
-        if wid != 0 {
-            focus_window(wid);
-        } else {
-            // An empty desktop: hand the keyboard to Finder, as macOS does
-            let pid = finder_pid();
-            if pid > 0 {
-                bring_to_front(pid);
-            }
+    let generation = FOCUS_GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
+    after_ms(FOCUS_DELAY_MS, move || focus_once_landed(sid, preferred, except, generation, FOCUS_RETRIES));
+}
+
+fn focus_once_landed(sid: u64, preferred: u32, except: u32, generation: u64, retries: u32) {
+    // A newer switch or send owns the focus now
+    if FOCUS_GENERATION.load(Ordering::SeqCst) != generation {
+        return;
+    }
+    if preferred != 0 {
+        focus_window(preferred);
+        return;
+    }
+    let landed = active_display().is_none_or(|d| d.current == sid);
+    let wid = if landed { visible_window_on(sid, except) } else { 0 };
+    if wid != 0 {
+        focus_window(wid);
+    } else if retries > 0 {
+        after_ms(FOCUS_RETRY_MS, move || focus_once_landed(sid, preferred, except, generation, retries - 1));
+    } else {
+        // An empty desktop: hand the keyboard to Finder, as macOS does
+        let pid = finder_pid();
+        if pid > 0 {
+            bring_to_front(pid);
         }
-    });
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -637,8 +652,16 @@ fn run_command(line: &str) -> String {
                 _ => "usage: move WINDOW N".into(),
             }
         }
+        "peek" => {
+            // peek: the window a jump back to the current desktop would focus, without switching
+            let Some(display) = active_display() else { return "no display".into() };
+            match visible_window_on(display.current, 0) {
+                0 => format!("space {}: no window, Finder", display.current),
+                wid => format!("space {}: window {wid} ({})", display.current, owner_name(wid)),
+            }
+        }
         "state" => state(),
-        _ => "commands: go N | send N | carry left|right | move WINDOW N | state".into(),
+        _ => "commands: go N | send N | carry left|right | move WINDOW N | peek | state".into(),
     }
 }
 
