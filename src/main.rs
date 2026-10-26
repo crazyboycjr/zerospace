@@ -19,7 +19,7 @@ use std::io::{Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::ptr::{null, null_mut};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 use sys::*;
 
 const AX_TIMEOUT: f32 = 0.25;
@@ -427,6 +427,25 @@ fn finder_pid() -> i32 {
     }
 }
 
+// A window sent to another desktop and the desktop it went to, so it can be raised to the front
+// when the user next lands there (a cross-Space raise does not take, so it waits for arrival).
+static SENT_TO: Mutex<Vec<(u64, u32)>> = Mutex::new(Vec::new());
+
+fn remember_sent(sid: u64, wid: u32) {
+    if let Ok(mut sent) = SENT_TO.lock() {
+        sent.retain(|&(s, _)| s != sid);
+        sent.push((sid, wid));
+    }
+}
+
+fn take_sent(sid: u64) -> u32 {
+    let mut sent = match SENT_TO.lock() {
+        Ok(sent) => sent,
+        Err(_) => return 0,
+    };
+    sent.iter().position(|&(s, _)| s == sid).map(|i| sent.remove(i).1).unwrap_or(0)
+}
+
 fn focus_soon(sid: u64, preferred: u32, except: u32) {
     let generation = FOCUS_GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
     after_ms(FOCUS_DELAY_MS, move || focus_once_landed(sid, preferred, except, generation, FOCUS_RETRIES));
@@ -441,8 +460,16 @@ fn focus_once_landed(sid: u64, preferred: u32, except: u32, generation: u64, ret
         focus_window(preferred);
         return;
     }
-    let landed = active_display().is_none_or(|d| d.current == sid);
-    let wid = if landed { visible_window_on(sid, except) } else { 0 };
+    if active_display().is_some_and(|d| d.current != sid) {
+        // The switch has not landed; look again shortly rather than focus the desktop we are leaving
+        if retries > 0 {
+            after_ms(FOCUS_RETRY_MS, move || focus_once_landed(sid, preferred, except, generation, retries - 1));
+        }
+        return;
+    }
+    // A window sent here while we were away is raised to the top, as if it had arrived in front
+    let sent = take_sent(sid);
+    let wid = if sent != 0 && space_of_window(sent) == sid { sent } else { visible_window_on(sid, except) };
     if wid != 0 {
         focus_window(wid);
     } else if retries > 0 {
@@ -571,6 +598,9 @@ fn send_to_desktop(n: usize) -> String {
         return "window is already there".into();
     }
     move_window(wid, target);
+    // Raise it to the top when we next land on that desktop, so it is in front on return; a bare
+    // move leaves it behind whatever was already there, and a cross-Space raise does not take.
+    remember_sent(target, wid);
     focus_soon(display.current, 0, wid);
     // Point the arrow the way the window flew, relative to the desktop we stay on
     let arrow = if n + 1 < position_of(&display, display.current) { '\u{2190}' } else { '\u{2192}' };
