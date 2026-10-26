@@ -8,8 +8,9 @@ KEYCHAIN="$HOME/Library/Keychains/signing.keychain-db"
 IDENTITY="Local Code Signing"
 
 PATH="$HOME/.cargo/bin:$PATH" cargo build --release
-mkdir -p "$APP/Contents/MacOS"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Info.plist "$APP/Contents/Info.plist"
+cp icon/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp target/release/zerospace "$APP/Contents/MacOS/ZeroSpace"
 if [ -f "$KEYCHAIN" ]; then
     security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
