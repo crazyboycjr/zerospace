@@ -210,6 +210,16 @@ pub unsafe fn msg_i32(obj: Id, sel: Sel) -> i32 {
     f(obj, sel)
 }
 
+pub unsafe fn msg_bool(obj: Id, sel: Sel) -> bool {
+    let f: extern "C" fn(Id, Sel) -> bool = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel)
+}
+
+pub unsafe fn msg_pid(obj: Id, sel: Sel, pid: i32) -> Id {
+    let f: extern "C" fn(Id, Sel, i32) -> Id = std::mem::transmute(objc_msgSend as *const c_void);
+    f(obj, sel, pid)
+}
+
 pub unsafe fn msg_ptr(obj: Id, sel: Sel, a: *const c_void) -> Id {
     let f: extern "C" fn(Id, Sel, *const c_void) -> Id = std::mem::transmute(objc_msgSend as *const c_void);
     f(obj, sel, a)

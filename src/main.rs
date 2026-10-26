@@ -386,6 +386,15 @@ fn focus_window(wid: u32) {
     }
 }
 
+/// Hidden apps (cmd+H, or hidden through NSRunningApplication like xsp's scratchpads) keep their
+/// windows in the full window list; focusing one would unhide its app.
+fn app_is_hidden(pid: i32) -> bool {
+    unsafe {
+        let app = msg_pid(class(c"NSRunningApplication"), sel(c"runningApplicationWithProcessIdentifier:"), pid);
+        !app.is_null() && msg_bool(app, sel(c"isHidden"))
+    }
+}
+
 /// The frontmost ordinary window on a desktop, skipping `except`.
 fn top_window_on(sid: u64, except: u32) -> u32 {
     let list = Cf(unsafe { CGWindowListCopyWindowInfo(kCGWindowListOptionAll | kCGWindowListExcludeDesktopElements, 0) });
@@ -398,6 +407,7 @@ fn top_window_on(sid: u64, except: u32) -> u32 {
             || number_f64(field(unsafe { kCGWindowAlpha })) <= 0.0
             || number_f64(get(bounds, "Width")) < 100.0
             || number_f64(get(bounds, "Height")) < 100.0
+            || app_is_hidden(number_i64(field(unsafe { kCGWindowOwnerPID })) as i32)
         {
             continue;
         }
@@ -547,8 +557,10 @@ fn send_to_desktop(n: usize) -> String {
     }
     move_window(wid, target);
     focus_soon(display.current, 0, wid);
-    show_osd(&format!("\u{2192}{}", n + 1)); // →N
-    format!("window {wid} to desktop {}", n + 1)
+    // Point the arrow the way the window flew, relative to the desktop we stay on
+    let arrow = if n + 1 < position_of(&display, display.current) { '\u{2190}' } else { '\u{2192}' };
+    show_osd(&format!("{arrow}{}", n + 1)); // ←N or →N
+    format!("window {wid} {arrow} desktop {}", n + 1)
 }
 
 fn carry(step: isize) -> String {
