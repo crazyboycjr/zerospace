@@ -1,8 +1,8 @@
 [package]
-name = "hop"
+name = "zerospace"
 version = "0.1.0"
 edition = "2021"
-description = "Instant desktop switching for macOS: cmd+N, no animation"
+description = "Remove the motion from macOS desktop switching"
 publish = false
 
 [profile.release]

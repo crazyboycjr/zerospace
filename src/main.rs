@@ -1,4 +1,4 @@
-//! Hop: switch macOS desktops instantly and send windows between them, with no animation.
+//! ZeroSpace: switch macOS desktops instantly and send windows between them, with no animation.
 //!
 //!   cmd+1..5               go to desktop N
 //!   cmd+shift+1..5         send the focused window to desktop N and stay
@@ -9,7 +9,7 @@
 //! accepts from a process with Accessibility access while SIP stays enabled. The approach
 //! comes from InstantSpaceSwitcher PR #110 (apellis) and native-space-kit.
 //!
-//! A Unix socket at ~/.cache/hop.sock takes the same actions as text ("go 2", "send 3",
+//! A Unix socket at ~/.cache/zerospace.sock takes the same actions as text ("go 2", "send 3",
 //! "carry right", "state"), for scripts and for testing over ssh.
 
 mod sys;
@@ -472,11 +472,16 @@ fn create_osd() {
         msg_set_bool(field, sel(c"setSelectable:"), false);
         msg_set_bool(field, sel(c"setBezeled:"), false);
         msg_set_bool(field, sel(c"setDrawsBackground:"), false);
-        msg_set_isize(field, sel(c"setAlignment:"), 2); // centered
+        msg_set_isize(field, sel(c"setAlignment:"), 1); // centered (macOS NSTextAlignmentCenter)
         msg_set_id(field, sel(c"setTextColor:"), ns_color(c"whiteColor"));
         msg_set_id(field, sel(c"setFont:"), msg_f64(class(c"NSFont"), sel(c"boldSystemFontOfSize:"), 46.0));
         msg_set_id(view, sel(c"addSubview:"), field);
 
+        // Keep the window ordered front on every space (canJoinAllSpaces) but invisible; a
+        // switch then only has to raise its alpha, so it shows on the space we land on, not
+        // the one we left. Ordering it front per-switch would pin it to the pre-switch space.
+        msg_set_f64(window, sel(c"setAlphaValue:"), 0.0);
+        msg(window, sel(c"orderFrontRegardless"));
         OSD_WINDOW.store(window as usize, Ordering::SeqCst);
         OSD_FIELD.store(field as usize, Ordering::SeqCst);
     }
@@ -495,13 +500,13 @@ fn show_osd(text: &str) {
         let value = cfstr(text);
         msg_set_id(field, sel(c"setStringValue:"), value.get() as Id);
         msg(window, sel(c"center"));
-        msg(window, sel(c"orderFrontRegardless"));
+        msg_set_f64(window, sel(c"setAlphaValue:"), 1.0);
     }
     let generation = OSD_GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
     after_ms(OSD_MS, move || {
         // Only hide if no newer switch has shown the indicator since
         if OSD_GENERATION.load(Ordering::SeqCst) == generation {
-            unsafe { msg_set_id(OSD_WINDOW.load(Ordering::SeqCst) as Id, sel(c"orderOut:"), null_mut()) };
+            unsafe { msg_set_f64(OSD_WINDOW.load(Ordering::SeqCst) as Id, sel(c"setAlphaValue:"), 0.0) };
         }
     });
 }
@@ -675,7 +680,7 @@ fn serve(mut stream: UnixStream) {
 }
 
 fn listen_on_socket() {
-    let path = format!("{}/.cache/hop.sock", std::env::var("HOME").unwrap_or_default());
+    let path = format!("{}/.cache/zerospace.sock", std::env::var("HOME").unwrap_or_default());
     let _ = std::fs::remove_file(&path);
     match UnixListener::bind(&path) {
         Ok(listener) => {
@@ -701,7 +706,7 @@ fn main() {
         }
         register_hot_keys();
         listen_on_socket();
-        log(&format!("hop ready: {}", state()));
+        log(&format!("ZeroSpace ready: {}", state()));
         msg(app, sel(c"run"));
     }
 }
