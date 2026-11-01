@@ -133,8 +133,8 @@ by apellis, which uses them to carry a dragged window across a switch.
 
 ## Install
 
-ZeroSpace needs macOS 27; it has been tested on macOS 27.0.1 on Apple Silicon.
-Building it takes Rust and the Xcode Command Line Tools
+ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 on Apple
+Silicon. Building it takes Rust and the Xcode Command Line Tools
 (`xcode-select --install`).
 
 ```sh

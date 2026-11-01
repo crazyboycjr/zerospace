@@ -163,6 +163,8 @@ kbd {
   border-radius: 6px;
   white-space: nowrap;
 }
+/* The fonts' Latin subsets have no arrows; the system's are drawn a little larger. */
+kbd.arrow { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 0.92em; line-height: 1.38; }
 
 .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
 .nw { white-space: nowrap; }
@@ -385,6 +387,7 @@ figure { margin: 0; }
   border-radius: 6px;
   background: #1d1915;
   color: #fff;
+  border: 1px solid var(--rule-strong);
   font: 650 0.92em/1.5 var(--font-text);
   white-space: nowrap;
 }

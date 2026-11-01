@@ -126,7 +126,7 @@
   <div class="section-head">
     <p class="kicker">Keys</p>
     <h2>Jump, send and carry</h2>
-    <p>Three families of shortcuts, all under the left hand. Each switch flashes the desktop's number in the middle of the screen for half a second, and once it has landed, the frontmost window there gets the keyboard, as macOS would give it.</p>
+    <p>Three families of shortcuts. Each switch flashes the desktop's number in the middle of the screen for half a second, and once it has landed, the frontmost window there gets the keyboard, as macOS would give it.</p>
   </div>
   <div class="key-grid">
     <div class="card key-card">
@@ -140,12 +140,12 @@
       <p>Send the focused window to that desktop and stay where you are. The flash points the way it went, <span class="osd-chip">←2</span> or <span class="nw"><span class="osd-chip">→4</span>,</span> and the window is in front when you next arrive there.</p>
     </div>
     <div class="card key-card">
-      <div class="keys"><kbd>cmd</kbd><kbd>shift</kbd><kbd>←</kbd><kbd>→</kbd></div>
+      <div class="keys"><kbd>cmd</kbd><kbd>shift</kbd><kbd class="arrow">←</kbd><kbd class="arrow">→</kbd></div>
       <h3>Carry</h3>
       <p>Take the focused window one desktop over and follow it, stepping over full-screen apps, which cannot hold another window.</p>
     </div>
   </div>
-  <p class="note">The shortcuts belong to ZeroSpace while it runs, so the app in front no longer gets them: a browser&rsquo;s <kbd>cmd</kbd>&#8202;<kbd>1</kbd> for its first tab, or <kbd>cmd</kbd>&#8202;<kbd>shift</kbd>&#8202;<kbd>←</kbd> to select to the start of a line. macOS uses <kbd>cmd</kbd>&#8202;<kbd>shift</kbd> with <span class="nw"><kbd>3</kbd>,</span> <kbd>4</kbd> and <kbd>5</kbd> for screenshots; if it still takes one instead, turn those off under System Settings, Keyboard, Keyboard Shortcuts, Screenshots. The keys are set in <code>register_hot_keys</code> in <code>src/main.rs</code>.</p>
+  <p class="note">The shortcuts belong to ZeroSpace while it runs, so the app in front no longer gets them: a browser&rsquo;s <kbd>cmd</kbd>&#8202;<kbd>1</kbd> for its first tab, or <kbd>cmd</kbd>&#8202;<kbd>shift</kbd>&#8202;<kbd class="arrow">←</kbd> to select to the start of a line. macOS uses <kbd>cmd</kbd>&#8202;<kbd>shift</kbd> with <span class="nw"><kbd>3</kbd>,</span> <kbd>4</kbd> and <kbd>5</kbd> for screenshots; if it still takes one instead, turn those off under System Settings, Keyboard, Keyboard Shortcuts, Screenshots. The keys are set in <code>register_hot_keys</code> in <code>src/main.rs</code>.</p>
 </section>
 
 <section class="feature wrap" id="slots">
@@ -177,7 +177,7 @@
     </div>
     <div class="feature-text">
       <p>macOS has no setting to turn the switch animation off. The usual ways around it either need SIP partly disabled, as yabai&rsquo;s scripting addition does, or play the slide very quickly, which is still a slide.</p>
-      <p>ZeroSpace asks the window server, SkyLight, to make the switch itself, through four of its private &ldquo;bridged&rdquo; operations, each sent with <code>perform<wbr>With<wbr>WM<wbr>Bridge<wbr>Delegate</code>. macOS 27 accepts them from any app that has Accessibility access, with SIP left on, and the desktop simply changes.</p>
+      <p>ZeroSpace asks the window server, SkyLight, to make the switch itself, through three of its private &ldquo;bridged&rdquo; operations, each sent with <code>perform<wbr>With<wbr>WM<wbr>Bridge<wbr>Delegate</code>. macOS 27 accepts them from any app that has Accessibility access, with SIP left on, and the desktop simply changes.</p>
     </div>
   </div>
   <ol class="flow" aria-label="How a switch is made">
@@ -186,7 +186,7 @@
     <li><span class="flow-title">Hide</span><span><code>SLSBridged<wbr>Hide<wbr>Spaces<wbr>Operation</code> hides the display&rsquo;s other desktops.</span></li>
     <li><span class="flow-title">Make it current</span><span><code>SLSBridged<wbr>Managed<wbr>Display<wbr>Set<wbr>Current<wbr>Space<wbr>Operation</code> makes desktop 2 the display&rsquo;s own.</span></li>
   </ol>
-  <p class="after-flow">Moving a window is a fifth operation, <code>SLSBridged<wbr>Move<wbr>Windows<wbr>To<wbr>Managed<wbr>Space<wbr>Operation</code>. Once a switch has landed, ZeroSpace gives the keyboard to the frontmost window on screen there, or to Finder on an empty desktop, and a window you sent there comes to the front, since the window server leaves a moved window behind the others.</p>
+  <p class="after-flow">Moving a window is a fourth, <code>SLSBridged<wbr>Move<wbr>Windows<wbr>To<wbr>Managed<wbr>Space<wbr>Operation</code>. Once a switch has landed, ZeroSpace gives the keyboard to the frontmost window on screen there, or to Finder on an empty desktop, and a window you sent there comes to the front, since the window server leaves a moved window behind the others.</p>
   <p class="after-flow">ZeroSpace found these operations in <a href="https://github.com/jurplel/InstantSpaceSwitcher/pull/110">a pull request to InstantSpaceSwitcher</a> by apellis, which uses them to carry a dragged window across a switch.</p>
 </section>
 
@@ -229,7 +229,7 @@ printf 'state' | nc -U ~/.cache/zerospace.sock</code></pre></div>
   <div class="section-head">
     <p class="kicker">Install</p>
     <h2>Build it on your Mac</h2>
-    <p>ZeroSpace needs macOS 27; it has been tested on macOS 27.0.1 on Apple Silicon. Building it takes Rust and the Xcode Command Line Tools.</p>
+    <p>ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 on Apple Silicon. Building it takes Rust and the Xcode Command Line Tools.</p>
   </div>
   <div class="install-grid">
     <div class="card install-item">
