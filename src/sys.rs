@@ -1,4 +1,4 @@
-//! The macOS C interfaces Hop needs, declared by hand: CoreFoundation, CoreGraphics,
+//! The macOS C interfaces ZeroSpace needs, declared by hand: CoreFoundation, CoreGraphics,
 //! SkyLight (private), Accessibility, Carbon hot keys, libdispatch and the Objective-C runtime.
 #![allow(non_upper_case_globals, non_snake_case, dead_code)]
 

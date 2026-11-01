@@ -715,7 +715,7 @@ extern "C" fn hot_key_pressed(_next: *mut c_void, event: *mut c_void, _data: *mu
 }
 
 fn register_hot_keys() {
-    let signature = fourcc(b"hop!");
+    let signature = fourcc(b"zsp!");
     unsafe {
         let target = GetApplicationEventTarget();
         let spec = EventTypeSpec { event_class: kEventClassKeyboard, event_kind: kEventHotKeyPressed };
@@ -745,7 +745,9 @@ fn serve(mut stream: UnixStream) {
 }
 
 fn listen_on_socket() {
-    let path = format!("{}/.cache/zerospace.sock", std::env::var("HOME").unwrap_or_default());
+    let cache = format!("{}/.cache", std::env::var("HOME").unwrap_or_default());
+    let _ = std::fs::create_dir_all(&cache);
+    let path = format!("{cache}/zerospace.sock");
     let _ = std::fs::remove_file(&path);
     match UnixListener::bind(&path) {
         Ok(listener) => {
