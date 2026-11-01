@@ -392,8 +392,8 @@ fn focus_window(wid: u32) {
 
 /// The frontmost window on screen on a desktop, skipping `except`: the one macOS itself would
 /// focus. The full window list is no use here: it keeps hidden apps' windows (cmd+H, or xsp's
-/// scratchpads hidden through kAXHidden), minimized windows and ordered-out helpers (a Chrome
-/// popup, Tailscale's window) on their desktop, in no z-order. The on-screen list runs front to
+/// scratchpads hidden through kAXHidden), minimized windows and ordered-out helpers (a browser's
+/// popup, a menu bar app's window) on their desktop, in no z-order. The on-screen list runs front to
 /// back and holds none of them, so this is only asked once the switch has landed.
 fn visible_window_on(sid: u64, except: u32) -> u32 {
     let list = Cf(unsafe { CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, 0) });
