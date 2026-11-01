@@ -15,7 +15,7 @@ IDENTITY="${CODESIGN_IDENTITY:--}"
 PATH="$HOME/.cargo/bin:$PATH" cargo build --release
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Info.plist "$APP/Contents/Info.plist"
-cp icon/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp assets/icon/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp target/release/zerospace "$APP/Contents/MacOS/ZeroSpace"
 if [ -n "${CODESIGN_KEYCHAIN:-}" ]; then
     [ -n "${CODESIGN_KEYCHAIN_PASSWORD:-}" ] && security unlock-keychain -p "$CODESIGN_KEYCHAIN_PASSWORD" "$CODESIGN_KEYCHAIN"
