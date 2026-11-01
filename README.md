@@ -6,7 +6,8 @@
 </p>
 
 <p align="center">
-  A small Rust app for macOS 27 that switches desktops with no animation at all, with SIP left on.
+A small Rust app for macOS 27 that switches desktops with no animation at all,
+with SIP left on.
 </p>
 
 <p align="center">
@@ -65,9 +66,9 @@ slide and no fade, not even a quick one.
 - **SIP stays on.** There is no scripting addition, nothing is loaded into the
   Dock, and nothing in macOS is changed; ZeroSpace needs only Accessibility
   access.
-- **Small and quiet.** It is about 1,000 lines of Rust with no dependencies.
-  Its shortcuts are Carbon hot keys, so no event tap ever sits between you and
-  your typing.
+- **Small and quiet.** It is about 1,000 lines of Rust with no dependencies. Its
+  shortcuts are Carbon hot keys, so no event tap ever sits between you and your
+  typing.
 
 ## Keys
 
@@ -106,42 +107,43 @@ keys are set in `register_hot_keys` in `src/main.rs`.
 
 ## How it works
 
-macOS has no setting to turn the switch animation off, and the usual ways
-around it either need SIP partly disabled, as yabai's scripting addition does,
-or play the slide quickly, which is still a slide. ZeroSpace asks the window
-server, SkyLight, to make the switch itself, through its private "bridged"
-operations, each sent with `performWithWMBridgeDelegate`:
+macOS has no setting to turn the switch animation off, and the usual ways around
+it either need SIP partly disabled, as yabai's scripting addition does, or play
+the slide quickly, which is still a slide. ZeroSpace asks the window server,
+SkyLight, to make the switch itself, through its private "bridged" operations,
+each sent with `performWithWMBridgeDelegate`:
 
 1. `SLSBridgedShowSpacesOperation` shows the desktop you asked for,
 2. `SLSBridgedHideSpacesOperation` hides the display's other desktops, and
 3. `SLSBridgedManagedDisplaySetCurrentSpaceOperation` makes it the display's
    current desktop.
 
-A fourth, `SLSBridgedMoveWindowsToManagedSpaceOperation`, moves a window.
-macOS 27 accepts these from any app that has Accessibility access, with SIP
-left on, and the desktop simply changes.
+A fourth, `SLSBridgedMoveWindowsToManagedSpaceOperation`, moves a window. macOS
+27 accepts these from any app that has Accessibility access, with SIP left on,
+and the desktop simply changes.
 
 The operations land a moment after they are sent, so before it focuses anything
-on the new desktop, ZeroSpace waits for the display to report it as current,
-for up to about 150 ms, and then picks the frontmost window from the list of
-windows on screen, which leaves out hidden and minimized windows. A window
-moved with cmd+shift+N lands behind the windows already on that desktop, so
-ZeroSpace remembers it and raises it when you next switch there with ZeroSpace.
+on the new desktop, ZeroSpace waits for the display to report it as current, for
+up to about 150 ms, and then picks the frontmost window from the list of windows
+on screen, which leaves out hidden and minimized windows. A window moved with
+cmd+shift+N lands behind the windows already on that desktop, so ZeroSpace
+remembers it and raises it when you next switch there with ZeroSpace.
 
 The number in the middle of the screen is a borderless window kept on every
 desktop and made visible for half a second, so it shows on the desktop you land
 on rather than the one you left.
 
 The bridged operations came to ZeroSpace from
+[native-space-kit](https://github.com/Fjx-dylanZ/native-space-kit), which
+documents them, and from
 [a pull request to InstantSpaceSwitcher](https://github.com/jurplel/InstantSpaceSwitcher/pull/110)
-by apellis, which uses them to carry a dragged window across a switch, and from
-native-space-kit.
+by apellis, which uses them to carry a dragged window across a switch.
 
 ## Install
 
 ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 on Apple
-Silicon. Building it takes Rust and the Xcode Command Line Tools
-(`xcode-select --install`).
+Silicon. Building it takes Rust and the Xcode Command Line Tools (`xcode-select
+--install`).
 
 ```sh
 git clone https://github.com/crazyboycjr/zerospace
@@ -149,11 +151,11 @@ cd zerospace
 sh build.sh
 ```
 
-`build.sh` builds with cargo, installs `~/Applications/ZeroSpace.app`, signs
-it, and starts it as the login agent `xyz.crazyboycjr.zerospace`, which runs it
-at every login, keeps it running, and logs to `~/Library/Logs/ZeroSpace.log`.
-The first start asks for Accessibility access; allow it in System Settings,
-Privacy & Security, Accessibility.
+`build.sh` builds with cargo, installs `~/Applications/ZeroSpace.app`, signs it,
+and starts it as the login agent `xyz.crazyboycjr.zerospace`, which runs it at
+every login, keeps it running, and logs to `~/Library/Logs/ZeroSpace.log`. The
+first start asks for Accessibility access; allow it in System Settings, Privacy
+& Security, Accessibility.
 
 Add the desktops you want in Mission Control, and turn off "Automatically
 rearrange Spaces based on most recent use" in System Settings, Desktop & Dock,
@@ -162,9 +164,9 @@ so the numbers stay where they are.
 ### Signing
 
 `build.sh` signs ad hoc unless told otherwise. That works, but an ad hoc
-signature changes with every build, and macOS then takes ZeroSpace for a new
-app and asks for Accessibility again. A self-signed certificate keeps the
-grant across builds:
+signature changes with every build, and macOS then takes ZeroSpace for a new app
+and asks for Accessibility again. A self-signed certificate keeps the grant
+across builds:
 
 1. Open Keychain Access from Spotlight; since macOS 15 it is no longer in
    Utilities. Choose Keychain Access, Certificate Assistant, Create a
@@ -215,8 +217,8 @@ printf 'state' | nc -U ~/.cache/zerospace.sock         # the display, its deskto
 
 `go` and `send` count Mission Control slots, full-screen apps included, as the
 keys do, and `go` reaches any slot, past the five on the keys. `move` counts
-desktops only, leaving full-screen apps out, and takes a window by its number
-in the window server's list. [xsp](https://github.com/crazyboycjr/xsp), which
+desktops only, leaving full-screen apps out, and takes a window by its number in
+the window server's list. [xsp](https://github.com/crazyboycjr/xsp), which
 brings xmonad's scratchpads to macOS, uses `state` and `move` to bring a
 scratchpad to the desktop you are on.
 
