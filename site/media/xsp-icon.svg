@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#1E1912"/><stop offset="1" stop-color="#322A20"/></linearGradient>
+  <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFC24B"/><stop offset="1" stop-color="#F58A2E"/></linearGradient>
+  <linearGradient id="term" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2A241D"/><stop offset="1" stop-color="#16120D"/></linearGradient>
+  <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.20"/><stop offset="0.5" stop-color="#fff" stop-opacity="0"/>
+    <stop offset="1" stop-color="#000" stop-opacity="0.12"/></linearGradient>
+  <clipPath id="sq"><rect x="92" y="92" width="840" height="840" rx="190"/></clipPath>
+  <filter id="soft" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="18" flood-opacity="0.45"/></filter>
+</defs><rect x="92" y="92" width="840" height="840" rx="190" fill="url(#bg)"/><g clip-path="url(#sq)"><rect x="166" y="194" width="500" height="420" rx="48" fill="url(#term)" stroke="#FFC24B" stroke-opacity="0.3" stroke-width="10"/><rect x="214" y="242" width="500" height="420" rx="48" fill="url(#term)" stroke="#FFC24B" stroke-opacity="0.55" stroke-width="10"/><rect x="262" y="290" width="500" height="420" rx="48" fill="url(#term)" stroke="url(#warm)" stroke-width="14" filter="url(#soft)"/><polyline points="330,440 410.5,509.0 330,578.0" fill="none" stroke="#FBA43C" stroke-width="29.9" stroke-linecap="round" stroke-linejoin="round"/><line x1="456.5" y1="578.0" x2="583.0" y2="578.0" stroke="#FBA43C" stroke-width="29.9" stroke-linecap="round"/></g><rect x="92" y="92" width="840" height="840" rx="190" fill="url(#gloss)"/><rect x="93" y="93" width="838" height="838" rx="189" fill="none" stroke="#fff" stroke-opacity="0.10" stroke-width="2"/></svg>
