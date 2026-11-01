@@ -7,7 +7,9 @@
 //! Desktops are switched and windows moved with SkyLight's bridged window-management
 //! operations (`SLSBridged*Operation` + `-performWithWMBridgeDelegate`), which macOS 27
 //! accepts from a process with Accessibility access while SIP stays enabled. The approach
-//! comes from InstantSpaceSwitcher PR #110 (apellis) and native-space-kit.
+//! comes from native-space-kit (https://github.com/Fjx-dylanZ/native-space-kit), which documents
+//! these operations, and InstantSpaceSwitcher PR #110 by apellis
+//! (https://github.com/jurplel/InstantSpaceSwitcher/pull/110).
 //!
 //! A Unix socket at ~/.cache/zerospace.sock takes the same actions as text ("go 2", "send 3",
 //! "carry right", "state"), for scripts and for testing over ssh.
