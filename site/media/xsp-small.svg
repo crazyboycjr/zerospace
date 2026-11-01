@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#1E1912"/><stop offset="1" stop-color="#322A20"/></linearGradient>
+  <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFC24B"/><stop offset="1" stop-color="#F58A2E"/></linearGradient>
+  <linearGradient id="term" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2A241D"/><stop offset="1" stop-color="#16120D"/></linearGradient>
+  <clipPath id="sq"><rect width="1024" height="1024" rx="232"/></clipPath>
+</defs>
+<rect width="1024" height="1024" rx="232" fill="url(#bg)"/>
+<g clip-path="url(#sq)">
+  <rect x="96" y="150" width="660" height="560" rx="76" fill="url(#term)" stroke="#FFC24B" stroke-opacity="0.5" stroke-width="40"/>
+  <rect x="236" y="300" width="692" height="580" rx="80" fill="url(#term)" stroke="url(#warm)" stroke-width="54"/>
+  <polyline points="352,470 476,580 352,690" fill="none" stroke="#FBA43C" stroke-width="66" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="560" y1="690" x2="760" y2="690" stroke="#FBA43C" stroke-width="66" stroke-linecap="round"/>
+</g>
+<rect x="6" y="6" width="1012" height="1012" rx="226" fill="none" stroke="#fff" stroke-opacity="0.16" stroke-width="12"/>
+</svg>

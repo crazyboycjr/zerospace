@@ -2,7 +2,9 @@
 
 ## 1.0.0 (2026-10-31)
 
-Install on macOS 27, with Rust and the Xcode Command Line Tools:
+The first public release: ZeroSpace switches macOS desktops with no animation
+at all, with SIP left on. Install it on macOS 27, with Rust and the Xcode
+Command Line Tools:
 
 ```sh
 git clone https://github.com/crazyboycjr/zerospace
@@ -14,10 +16,9 @@ Allow Accessibility when macOS asks. To keep that permission across builds,
 sign with a certificate of your own through `CODESIGN_IDENTITY`; the README's
 [Signing](README.md#signing) section shows how.
 
-This is the first public release. ZeroSpace switches macOS desktops with no
-animation at all, through the window server's private bridged operations,
-which macOS 27 accepts from an app with Accessibility access while SIP stays
-on.
+ZeroSpace switches desktops through the window server's private bridged
+operations, which macOS 27 accepts from an app with Accessibility access while
+SIP stays on.
 
 **Switching.** cmd+1 to cmd+5 go straight to a desktop. Desktops are numbered
 by their place in the Mission Control bar of the display under the pointer,
@@ -31,7 +32,7 @@ moving a window.
 
 **Focus.** Once a switch has landed, the frontmost window on screen there gets
 the keyboard, and Finder does on an empty desktop. A window you sent somewhere
-comes to the front when you next arrive. Hidden and minimized windows are never
+comes to the front when you next switch there with ZeroSpace. Hidden and minimized windows are never
 picked, nor an app's invisible helper windows.
 
 **The indicator.** Each switch flashes the desktop's number in the middle of

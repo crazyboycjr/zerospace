@@ -11,15 +11,17 @@
 
 <p align="center">
   <a href="https://crazyboycjr.github.io/zerospace/">Homepage</a> ·
-  <a href="#install">Install</a> ·
   <a href="#keys">Keys</a> ·
   <a href="#how-it-works">How it works</a> ·
+  <a href="#install">Install</a> ·
   <a href="#scripting">Scripting</a> ·
   <a href="#limits">Limits</a> ·
   <a href="CHANGELOG.md">Changes</a>
 </p>
 
 <picture>
+  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="docs/readme-switch-tall-dark.svg">
+  <source media="(max-width: 600px)" srcset="docs/readme-switch-tall-light.svg">
   <source media="(prefers-color-scheme: dark)" srcset="docs/readme-switch-dark.svg">
   <img src="docs/readme-switch-light.svg" width="100%" alt="An illustration, not a recording: two schematic displays. On the left, macOS: ctrl and the right arrow slide desktop 1 out and desktop 2 in, and ctrl and the left arrow slide back. On the right, ZeroSpace: cmd and 2 cut straight to desktop 2 while a 2 flashes in the middle of the screen, and cmd and 1 cut back.">
 </picture>
@@ -74,7 +76,7 @@ and its number flashes in the middle of the screen for half a second.
 
 <kbd>cmd</kbd> <kbd>shift</kbd> <kbd>1</kbd> to <kbd>5</kbd> send the focused window to that
 desktop while you stay where you are. The flash points the way the window went,
-←2 or →4, and the window is in front when you next arrive there.
+←2 or →4, and the window is in front when you next switch there with ZeroSpace.
 
 <kbd>cmd</kbd> <kbd>shift</kbd> <kbd>←</kbd> and <kbd>→</kbd> carry the focused window one
 desktop over and follow it.
@@ -85,6 +87,8 @@ sits third. A window cannot go into a full-screen app, so cmd+shift+3 refuses
 that slot, and carrying a window steps over it.
 
 <picture>
+  <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="docs/readme-slots-tall-dark.svg">
+  <source media="(max-width: 600px)" srcset="docs/readme-slots-tall-light.svg">
   <source media="(prefers-color-scheme: dark)" srcset="docs/readme-slots-dark.svg">
   <img src="docs/readme-slots-light.svg" width="100%" alt="Five Mission Control thumbnails in a row: Desktop 1, Desktop 2, a full-screen app, Desktop 3 and Desktop 4, with cmd and 1 to cmd and 5 under them in order, so cmd and 3 goes to the full-screen app. A note says a window cannot be sent into it, and carrying a window steps over it.">
 </picture>
@@ -92,12 +96,13 @@ that slot, and carrying a window steps over it.
 Once a switch has landed, the frontmost window on the new desktop gets the
 keyboard, as macOS would give it, and an empty desktop gives it to Finder.
 
-While ZeroSpace runs, these shortcuts belong to it, so the app in front no
-longer gets them: a browser's cmd+1 for its first tab, or cmd+shift+← to select
-to the start of a line. macOS also uses cmd+shift with 3, 4 and 5 for
-screenshots; if it still takes one instead, turn those shortcuts off in System
-Settings, Keyboard, Keyboard Shortcuts, Screenshots. The keys are set in
-`register_hot_keys` in `src/main.rs`.
+While ZeroSpace runs, the app in front no longer gets these shortcuts: a
+browser's cmd+1 for its first tab, or cmd+shift+← to select to the start of a
+line. macOS keeps cmd+shift+3, 4 and 5 for screenshots, and I have not yet
+checked which of the two gets them on macOS 27. If one of them takes a
+screenshot instead of sending the window, turn the screenshot shortcuts off, or
+move them, in System Settings, Keyboard, Keyboard Shortcuts, Screenshots. The
+keys are set in `register_hot_keys` in `src/main.rs`.
 
 ## How it works
 
@@ -116,12 +121,12 @@ A fourth, `SLSBridgedMoveWindowsToManagedSpaceOperation`, moves a window.
 macOS 27 accepts these from any app that has Accessibility access, with SIP
 left on, and the desktop simply changes.
 
-The operations land a moment after they are sent, so ZeroSpace waits until the
-display reports the new desktop as current before it focuses anything there,
-and picks the frontmost window from the list of windows on screen, which leaves
-out hidden and minimized windows. A window moved with cmd+shift+N lands behind
-the windows already on that desktop, so ZeroSpace remembers it and raises it
-when you next arrive.
+The operations land a moment after they are sent, so before it focuses anything
+on the new desktop, ZeroSpace waits for the display to report it as current,
+for up to about 150 ms, and then picks the frontmost window from the list of
+windows on screen, which leaves out hidden and minimized windows. A window
+moved with cmd+shift+N lands behind the windows already on that desktop, so
+ZeroSpace remembers it and raises it when you next switch there with ZeroSpace.
 
 The number in the middle of the screen is a borderless window kept on every
 desktop and made visible for half a second, so it shows on the desktop you land
@@ -129,7 +134,8 @@ on rather than the one you left.
 
 The bridged operations came to ZeroSpace from
 [a pull request to InstantSpaceSwitcher](https://github.com/jurplel/InstantSpaceSwitcher/pull/110)
-by apellis, which uses them to carry a dragged window across a switch.
+by apellis, which uses them to carry a dragged window across a switch, and from
+native-space-kit.
 
 ## Install
 
@@ -160,7 +166,8 @@ signature changes with every build, and macOS then takes ZeroSpace for a new
 app and asks for Accessibility again. A self-signed certificate keeps the
 grant across builds:
 
-1. In Keychain Access, choose Keychain Access, Certificate Assistant, Create a
+1. Open Keychain Access from Spotlight; since macOS 15 it is no longer in
+   Utilities. Choose Keychain Access, Certificate Assistant, Create a
    Certificate.
 2. Name it, for example Local Code Signing, with Identity Type Self-Signed Root
    and Certificate Type Code Signing.
@@ -170,10 +177,16 @@ grant across builds:
 CODESIGN_IDENTITY="Local Code Signing" sh build.sh
 ```
 
+The first build with it asks whether codesign may use the key; choose Always
+Allow. If ZeroSpace was built ad hoc before, its old entry in System Settings,
+Privacy & Security, Accessibility stays ticked but no longer counts: remove it
+with the minus button and allow ZeroSpace again.
+
 To keep the setting, put the line `CODESIGN_IDENTITY="Local Code Signing"` in
 `signing.env` beside `build.sh`, which git ignores. Where the login keychain is
-locked, as over ssh, keep the certificate in a keychain of its own, name it
-with `CODESIGN_KEYCHAIN`, and give its password in `CODESIGN_KEYCHAIN_PASSWORD`.
+locked, as over ssh, keep the certificate in a keychain of its own, give the
+keychain's path in `CODESIGN_KEYCHAIN` and its password in
+`CODESIGN_KEYCHAIN_PASSWORD`.
 
 ### Stop and remove
 
@@ -210,7 +223,8 @@ scratchpad to the desktop you are on.
 ## Limits
 
 - ZeroSpace has only been tested on macOS 27.0.1 on Apple Silicon, with one
-  display. With several displays, it acts on the one under the pointer.
+  display. With several displays it is meant to act on the one under the
+  pointer, but that is untested.
 - The bridged operations are private and undocumented, so a macOS update can
   change or remove them. ZeroSpace checks for them when it starts and logs it
   when they are missing; then the keys stop switching.
@@ -218,7 +232,7 @@ scratchpad to the desktop you are on.
 - Five desktops are on the keys; the socket's `go` reaches the rest.
 - The shortcuts are fixed in the source; to change them, edit
   `register_hot_keys` in `src/main.rs` and build again.
-- There is no tiling or window layout. yabai and AeroSpace do that, and far
+- There is no tiling or window layout; for that, yabai and AeroSpace do far
   more.
 
 ## License

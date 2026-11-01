@@ -35,8 +35,8 @@
   --rule-strong: rgba(90, 74, 56, 0.4);
   --link: #9a4d0c;
   --kicker: #a3530e;
-  --amber: #f58a2e;
-  --amber-2: #ffc24b;
+  --accent: #f58a2e;
+  --accent-2: #ffc24b;
   --primary: #f2a23a;
   --primary-hover: #f6b052;
   --primary-ink: #26211b;
@@ -50,6 +50,8 @@
   --fs: 17px;
   --fs-s: 15px;
   --fs-xs: 13px;
+  /* Code and keycaps come in two sizes: 14 px in reading text, 13 px in smaller text. */
+  --code-size: 14px;
   --font-display: "Literata", Georgia, serif;
   --font-text: "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -147,12 +149,12 @@ p { margin: 0; }
 p + p { margin-top: 14px; }
 
 code, kbd, pre { font-family: var(--font-mono); font-variant-ligatures: none; }
-code { font-size: 0.875em; background: var(--code-bg); border-radius: 5px; padding: 0.12em 0.36em; white-space: nowrap; }
+code { font-size: var(--code-size); background: var(--code-bg); border-radius: 5px; padding: 0.12em 0.36em; white-space: nowrap; }
 kbd {
   display: inline-block;
   min-width: 1.9em;
   padding: 0.06em 0.5em 0.02em;
-  font-size: 0.84em;
+  font-size: var(--code-size);
   font-weight: 600;
   line-height: 1.5;
   text-align: center;
@@ -166,6 +168,8 @@ kbd {
 /* The fonts' Latin subsets have no arrows; the system's are drawn a little larger. */
 kbd.arrow { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 0.92em; line-height: 1.38; }
 
+.point p, figcaption, .caption, .key-card p, .note, .flow li, table, .install-item p, .install-item ol,
+.requirements, .rule p, .wall p, .limits li, .sibling-card p, .credits { --code-size: 13px; }
 .wrap { width: min(var(--wrap), 100% - 2 * var(--gutter)); margin-inline: auto; }
 .nw { white-space: nowrap; }
 
@@ -186,7 +190,7 @@ kbd.arrow { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-
   margin-right: 10px;
   vertical-align: -0.16em;
   border-radius: 2px;
-  background: linear-gradient(var(--amber-2), var(--amber));
+  background: linear-gradient(var(--accent-2), var(--accent));
   box-shadow: 0 0 7px rgba(255, 178, 70, 0.55);
 }
 
@@ -255,7 +259,6 @@ kbd.arrow { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-
 }
 .hero .kicker { margin-bottom: 16px; }
 .lede { margin: 24px auto 0; max-width: 680px; font-size: 19px; line-height: 1.62; color: var(--ink-2); }
-.lede kbd { font-size: 0.8em; }
 .actions { display: flex; justify-content: center; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
 .button {
   display: inline-flex;
@@ -376,20 +379,23 @@ figure { margin: 0; }
 /* The keys: three cards, each a family of shortcuts. */
 .key-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 36px; }
 .key-card { padding: 24px 26px 26px; display: flex; flex-direction: column; }
-.key-card .keys { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 36px; font-size: 19px; color: var(--muted); }
+.key-card .keys { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 36px; font-size: 19px; color: var(--muted); --code-size: 15px; }
 .key-card .keys .to { font-size: var(--fs-s); margin: 0 2px; }
 .key-card h3 { margin-top: 18px; }
 .key-card p { margin-top: 8px; font-size: var(--fs-s); line-height: 1.58; color: var(--ink-2); }
 .osd-chip {
   display: inline-block;
   margin: 0 2px;
-  padding: 0 0.42em;
-  border-radius: 6px;
-  background: #1d1915;
+  padding: 0.06em 0.5em;
+  border-radius: 7px;
+  background: #15120f;
   color: #fff;
-  border: 1px solid var(--rule-strong);
-  font: 650 0.92em/1.5 var(--font-text);
+  font: 700 13px/1.45 var(--font-text);
   white-space: nowrap;
+}
+:root[data-theme="dark"] .osd-chip { background: #f1e8db; color: #1b1712; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .osd-chip { background: #f1e8db; color: #1b1712; }
 }
 .note { margin-top: 28px; max-width: 860px; font-size: var(--fs-s); color: var(--ink-2); }
 .note + .note { margin-top: 10px; }
@@ -443,7 +449,6 @@ figure { margin: 0; }
 }
 .flow-title { display: block; font-weight: 650; color: var(--ink); font-size: var(--fs); }
 .flow code, .after-flow code, .feature-text code { white-space: normal; }
-.flow code { font-size: 0.82em; }
 .after-flow { margin-top: 28px; max-width: 860px; color: var(--ink-2); }
 .after-flow + .after-flow { margin-top: 12px; }
 
@@ -476,6 +481,7 @@ td:first-child code { font-size: 0.92em; }
   line-height: 1.7;
 }
 .code pre code { background: none; padding: 0; font-size: inherit; white-space: pre; }
+.flow code { font-size: var(--code-size); }
 .copy {
   height: 32px;
   padding: 0 12px;
@@ -509,7 +515,16 @@ td:first-child code { font-size: 0.92em; }
 /* Limits */
 .limits { margin: 28px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 40px; }
 .limits li { position: relative; padding-left: 20px; color: var(--ink-2); font-size: var(--fs-s); line-height: 1.58; }
-.limits li::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 7px; height: 7px; border-radius: 2px; background: var(--amber); opacity: 0.8; }
+.limits li::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); opacity: 0.8; }
+
+/* Installing: building and removing side by side, signing across the page
+   below them, in two columns of its own. The page keeps them in reading order. */
+.install-grid.with-wide { grid-auto-flow: row dense; }
+.install-grid.with-wide .install-item:last-child:nth-child(odd) { grid-column: auto; }
+.install-grid .install-wide { grid-column: 1 / -1; }
+.wide-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; align-items: start; }
+.wide-body > * { min-width: 0; }
+.wide-body ol { margin-top: 0; }
 
 /* Grid items may shrink below their longest line; code blocks scroll instead. */
 .feature-head > *, .install-grid > *, .flow > *, .key-grid > *, .limits > * { min-width: 0; }
@@ -521,9 +536,9 @@ td:first-child code { font-size: 0.92em; }
 .credits { margin-top: 10px; font-size: var(--fs-xs); }
 
 /* illus:start */
-:root { --il-ink: #26211b; --il-muted: #6c6255; --il-tag: #8a7e70; --il-key: #fffaf3; --il-keyedge: #d7cab8; --il-keyink: #3a322a; --il-hot: #f5a23c; --il-hotedge: #c8731f; --il-bezel: #2a241d; --il-bezeledge: #4a4037; --il-gap: #1c1813; --il-menubar: #fbf6ee; --il-menuink: #a69a8a; --il-win: #fffbf5; --il-winbar: #f1e8da; --il-winedge: #dccfbd; --il-dot: #d6c8b4; --il-line: #ddd0be; --il-code: #efb56b; --il-code2: #c9d2a4; --il-img: #f2a64a; --il-img2: #e2c49a; --il-num: #5a4630; --il-osd: #000000; --il-osdink: #ffffff; --il-pad: #1b1712; --il-padline: #d9cdb9; --il-padtag: #a3968a; --il-prompt: #fba43c; --il-promptf: #fba43c; --il-rowhot: #f5a23c; --il-blade: #e9a24c; --il-w1a: #f3e5cf; --il-w1b: #e5cba6; --il-w2a: #f4ddd0; --il-w2b: #e2b9a3; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --il-ink: #f1e8db; --il-muted: #ab9f90; --il-tag: #8f8476; --il-key: #2c251e; --il-keyedge: #4d4237; --il-keyink: #e9dfd1; --il-hot: #f5a23c; --il-hotedge: #c8731f; --il-bezel: #0e0b08; --il-bezeledge: #3a3129; --il-gap: #0b0907; --il-menubar: #241e18; --il-menuink: #6e6356; --il-win: #2d261f; --il-winbar: #383027; --il-winedge: #463b30; --il-dot: #57493b; --il-line: #4f4337; --il-code: #b8742c; --il-code2: #6f7a4a; --il-img: #a8641f; --il-img2: #5d4a35; --il-num: #ffe9cc; --il-osd: #000000; --il-osdink: #ffffff; --il-pad: #15110d; --il-padline: #d9cdb9; --il-padtag: #a3968a; --il-prompt: #fba43c; --il-promptf: #fba43c; --il-rowhot: #f5a23c; --il-blade: #ffcf7a; --il-w1a: #3b2f22; --il-w1b: #221b14; --il-w2a: #3a2721; --il-w2b: #211814; } }
-:root[data-theme="dark"] { --il-ink: #f1e8db; --il-muted: #ab9f90; --il-tag: #8f8476; --il-key: #2c251e; --il-keyedge: #4d4237; --il-keyink: #e9dfd1; --il-hot: #f5a23c; --il-hotedge: #c8731f; --il-bezel: #0e0b08; --il-bezeledge: #3a3129; --il-gap: #0b0907; --il-menubar: #241e18; --il-menuink: #6e6356; --il-win: #2d261f; --il-winbar: #383027; --il-winedge: #463b30; --il-dot: #57493b; --il-line: #4f4337; --il-code: #b8742c; --il-code2: #6f7a4a; --il-img: #a8641f; --il-img2: #5d4a35; --il-num: #ffe9cc; --il-osd: #000000; --il-osdink: #ffffff; --il-pad: #15110d; --il-padline: #d9cdb9; --il-padtag: #a3968a; --il-prompt: #fba43c; --il-promptf: #fba43c; --il-rowhot: #f5a23c; --il-blade: #ffcf7a; --il-w1a: #3b2f22; --il-w1b: #221b14; --il-w2a: #3a2721; --il-w2b: #211814; }
+:root { --il-ink: #26211b; --il-muted: #6c6255; --il-tag: #6c6255; --il-key: #fffaf3; --il-keyedge: #d7cab8; --il-keyink: #3a322a; --il-hot: #f5a23c; --il-hotedge: #c8731f; --il-bezel: #2a241d; --il-bezeledge: #4a4037; --il-gap: #1c1813; --il-menubar: #fbf6ee; --il-menuink: #a69a8a; --il-win: #fffbf5; --il-winbar: #f1e8da; --il-winedge: #dccfbd; --il-dot: #d6c8b4; --il-line: #ddd0be; --il-code: #efb56b; --il-code2: #c9d2a4; --il-img: #f2a64a; --il-img2: #e2c49a; --il-num: #5a4630; --il-osd: #000000; --il-osdink: #ffffff; --il-pad: #1b1712; --il-padline: #d9cdb9; --il-padtag: #a3968a; --il-prompt: #fba43c; --il-promptf: #fba43c; --il-rowhot: #f5a23c; --il-blade: #e9a24c; --il-w1a: #f3e5cf; --il-w1b: #e5cba6; --il-w2a: #f4ddd0; --il-w2b: #e2b9a3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --il-ink: #f1e8db; --il-muted: #ab9f90; --il-tag: #a09484; --il-key: #2c251e; --il-keyedge: #4d4237; --il-keyink: #e9dfd1; --il-hot: #f5a23c; --il-hotedge: #c8731f; --il-bezel: #0e0b08; --il-bezeledge: #3a3129; --il-gap: #0b0907; --il-menubar: #2a231c; --il-menuink: #6e6356; --il-win: #372e25; --il-winbar: #433a30; --il-winedge: #54473a; --il-dot: #66574a; --il-line: #5f5243; --il-code: #b8742c; --il-code2: #6f7a4a; --il-img: #a8641f; --il-img2: #5d4a35; --il-num: #ffe9cc; --il-osd: #000000; --il-osdink: #ffffff; --il-pad: #15110d; --il-padline: #d9cdb9; --il-padtag: #a3968a; --il-prompt: #fba43c; --il-promptf: #fba43c; --il-rowhot: #f5a23c; --il-blade: #ffcf7a; --il-w1a: #4a3a29; --il-w1b: #2b2219; --il-w2a: #4a3129; --il-w2b: #2a1e19; } }
+:root[data-theme="dark"] { --il-ink: #f1e8db; --il-muted: #ab9f90; --il-tag: #a09484; --il-key: #2c251e; --il-keyedge: #4d4237; --il-keyink: #e9dfd1; --il-hot: #f5a23c; --il-hotedge: #c8731f; --il-bezel: #0e0b08; --il-bezeledge: #3a3129; --il-gap: #0b0907; --il-menubar: #2a231c; --il-menuink: #6e6356; --il-win: #372e25; --il-winbar: #433a30; --il-winedge: #54473a; --il-dot: #66574a; --il-line: #5f5243; --il-code: #b8742c; --il-code2: #6f7a4a; --il-img: #a8641f; --il-img2: #5d4a35; --il-num: #ffe9cc; --il-osd: #000000; --il-osdink: #ffffff; --il-pad: #15110d; --il-padline: #d9cdb9; --il-padtag: #a3968a; --il-prompt: #fba43c; --il-promptf: #fba43c; --il-rowhot: #f5a23c; --il-blade: #ffcf7a; --il-w1a: #4a3a29; --il-w1b: #2b2219; --il-w2a: #4a3129; --il-w2b: #2a1e19; }
 .illus .f-ink { fill: var(--il-ink); }
 .illus .f-muted { fill: var(--il-muted); }
 .illus .f-tag { fill: var(--il-tag); }
@@ -613,6 +628,8 @@ td:first-child code { font-size: 0.92em; }
   .flow li + li .flow-title::before { top: -10px; left: 23px; border: 6px solid transparent; border-top-color: var(--rule-strong); border-bottom-width: 0; }
   .flow li:nth-child(3)::after, .flow li:nth-child(3) .flow-title::before { display: block; }
   .install-grid { grid-template-columns: 1fr; }
+  .wide-body { grid-template-columns: 1fr; }
+  .wide-body ol { margin-top: 14px; }
   .install-item { padding: 20px 18px 22px; }
   .key-card { padding: 20px 18px 22px; }
   .code pre { padding: 14px; }
