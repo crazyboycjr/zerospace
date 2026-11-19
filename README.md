@@ -164,6 +164,47 @@ Add the desktops you want in Mission Control, and turn off "Automatically
 rearrange Spaces based on most recent use" in System Settings, Desktop & Dock,
 so the numbers stay where they are.
 
+### Install with nix-darwin
+
+The repository is also a Nix flake for Apple Silicon. To try a build without
+installing anything:
+
+```sh
+nix build github:crazyboycjr/zerospace
+```
+
+The app is then `result/Applications/ZeroSpace.app`. To install it, add the
+flake to your nix-darwin configuration and turn on its module:
+
+```nix
+{
+  inputs.zerospace.url = "github:crazyboycjr/zerospace";
+  inputs.zerospace.inputs.nixpkgs.follows = "nixpkgs";
+
+  outputs = { nix-darwin, zerospace, ... }: {
+    darwinConfigurations.my-mac = nix-darwin.lib.darwinSystem {
+      modules = [
+        zerospace.darwinModules.default
+        { services.zerospace.enable = true; }
+        # your configuration, with system.primaryUser set
+      ];
+    };
+  };
+}
+```
+
+```sh
+sudo darwin-rebuild switch --flake ~/.config/nix-darwin
+```
+
+The module installs ZeroSpace and starts the same login agent as `build.sh`,
+for `system.primaryUser`, with the same log. Allow Accessibility when it asks.
+Nix builds are signed ad hoc, so macOS asks for Accessibility again whenever an
+update changes the binary. If you used `build.sh` before, stop and remove that
+copy first, as below. To remove the nix one, take the module out and switch
+again. The build needs `apple-sdk_26` from nixpkgs; if yours is older, drop the
+`follows` line, and the flake builds with the nixpkgs it pins.
+
 ### Signing
 
 `build.sh` signs ad hoc unless told otherwise. That works, but an ad hoc
