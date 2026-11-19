@@ -49,8 +49,11 @@ Claude; most of the work was finding the right private operations, not writing
 the code.
 
 If the slide bothers you too, read on. If you want tiling or a full window
-manager, yabai and [AeroSpace](https://github.com/nikitabobko/AeroSpace) do far
-more.
+manager, yabai, [AeroSpace](https://github.com/nikitabobko/AeroSpace),
+[Amethyst](https://ianyh.com/amethyst/) and newer ones such as
+[OmniWM](https://github.com/BarutSRB/OmniWM),
+[HyprSpace](https://github.com/BarutSRB/HyprSpace) and
+[HyprMac](https://github.com/zacharytgray/HyprMac) do far more.
 
 ## What it is
 
