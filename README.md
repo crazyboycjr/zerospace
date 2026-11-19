@@ -102,11 +102,12 @@ keyboard, as macOS would give it, and an empty desktop gives it to Finder.
 
 While ZeroSpace runs, the app in front no longer gets these shortcuts: a
 browser's cmd+1 for its first tab, or cmd+shift+← to select to the start of a
-line. macOS keeps cmd+shift+3, 4 and 5 for screenshots, and I have not yet
-checked which of the two gets them on macOS 27. If one of them takes a
-screenshot instead of sending the window, turn the screenshot shortcuts off, or
-move them, in System Settings, Keyboard, Keyboard Shortcuts, Screenshots. The
-keys are set in `register_hot_keys` in `src/main.rs`.
+line. macOS's own shortcuts come first, though: its Switch to Desktop shortcuts
+on cmd+1 to cmd+5 keep those keys from ZeroSpace (see Install), and its
+screenshot shortcuts on cmd+shift+3, 4 and 5 should win the same way. If one
+takes a screenshot instead of sending the window, turn the screenshot shortcuts
+off, or move them, in System Settings, Keyboard, Keyboard Shortcuts,
+Screenshots. The keys are set in `register_hot_keys` in `src/main.rs`.
 
 ## How it works
 
@@ -144,8 +145,8 @@ by apellis, which uses them to carry a dragged window across a switch.
 
 ## Install
 
-ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 on Apple
-Silicon. Building it takes Rust and the Xcode Command Line Tools (`xcode-select
+ZeroSpace has been tested on macOS 27.0.1 and 26.7.1, on Apple Silicon.
+Building it takes Rust and the Xcode Command Line Tools (`xcode-select
 --install`).
 
 ```sh
@@ -163,6 +164,11 @@ first start asks for Accessibility access; allow it in System Settings, Privacy
 Add the desktops you want in Mission Control, and turn off "Automatically
 rearrange Spaces based on most recent use" in System Settings, Desktop & Dock,
 so the numbers stay where they are.
+
+Turn off macOS's own Switch to Desktop shortcuts as well, in System Settings,
+Keyboard, Keyboard Shortcuts, Mission Control. macOS handles them before any
+app, so if they use cmd+1 to cmd+5, ZeroSpace never sees those keys and the
+desktops slide as before. The nix-darwin module below does this for you.
 
 ### Install with nix-darwin
 
@@ -199,6 +205,9 @@ sudo darwin-rebuild switch --flake ~/.config/nix-darwin
 
 The module installs ZeroSpace and starts the same login agent as `build.sh`,
 for `system.primaryUser`, with the same log. Allow Accessibility when it asks.
+It also turns off macOS's Switch to Desktop 1 to 5 shortcuts, and only those, so
+they can't take cmd+1 to cmd+5 first; set
+`services.zerospace.disableDesktopShortcuts = false` to leave them alone.
 Nix builds are signed ad hoc, so macOS asks for Accessibility again whenever an
 update changes the binary. If you used `build.sh` before, stop and remove that
 copy first, as below. To remove the nix one, take the module out and switch
@@ -268,8 +277,8 @@ scratchpad to the desktop you are on.
 
 ## Limits
 
-- ZeroSpace has only been tested on macOS 27.0.1 on Apple Silicon, with one
-  display. With several displays it is meant to act on the one under the
+- ZeroSpace has only been tested on macOS 27.0.1 and 26.7.1 on Apple Silicon,
+  with one display. With several displays it is meant to act on the one under the
   pointer, but that is untested.
 - The bridged operations are private and undocumented, so a macOS update can
   change or remove them. ZeroSpace checks for them when it starts and logs it

@@ -35,6 +35,17 @@
               defaultText = lib.literalExpression ''"<home of system.primaryUser>/Library/Logs/ZeroSpace.log"'';
               description = "Where the agent's standard error goes. launchd does not expand `~`.";
             };
+
+            disableDesktopShortcuts = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+              description = ''
+                Turn off macOS's own "Switch to Desktop 1" to "Switch to Desktop 5" shortcuts (System
+                Settings > Keyboard > Keyboard Shortcuts > Mission Control). macOS handles them before
+                any app, so when they use cmd+1 to cmd+5 ZeroSpace never sees the keys and desktops
+                switch with the usual slide. No other shortcut is changed.
+              '';
+            };
           };
 
           config = lib.mkIf cfg.enable {
@@ -48,6 +59,18 @@
               ProcessType = "Interactive";
               StandardErrorPath = cfg.logFile;
             };
+
+            # Switch to Desktop 1 to 5 are the symbolic hot keys 118 to 122. -dict-add changes only
+            # those entries, where writing AppleSymbolicHotKeys whole, as system.defaults does, would
+            # reset every other shortcut; activateSettings applies it without logging out.
+            system.activationScripts.postActivation.text = lib.mkIf cfg.disableDesktopShortcuts ''
+              for id in 118 119 120 121 122; do
+                launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- \
+                  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$id" '<dict><key>enabled</key><false/></dict>'
+              done
+              launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- \
+                /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+            '';
           };
         };
     };
