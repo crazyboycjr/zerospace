@@ -36,7 +36,7 @@
               description = "Where the agent's standard error goes. launchd does not expand `~`.";
             };
 
-            disableDesktopShortcuts = lib.mkOption {
+            disableSwitchToDesktopShortcuts = lib.mkOption {
               type = lib.types.bool;
               default = true;
               description = ''
@@ -63,7 +63,7 @@
             # Switch to Desktop 1 to 5 are the symbolic hot keys 118 to 122. -dict-add changes only
             # those entries, where writing AppleSymbolicHotKeys whole, as system.defaults does, would
             # reset every other shortcut; activateSettings applies it without logging out.
-            system.activationScripts.postActivation.text = lib.mkIf cfg.disableDesktopShortcuts ''
+            system.activationScripts.postActivation.text = lib.mkIf cfg.disableSwitchToDesktopShortcuts ''
               for id in 118 119 120 121 122; do
                 launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- \
                   defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$id" '<dict><key>enabled</key><false/></dict>'

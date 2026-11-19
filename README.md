@@ -191,7 +191,14 @@ flake to your nix-darwin configuration and turn on its module:
     darwinConfigurations.my-mac = nix-darwin.lib.darwinSystem {
       modules = [
         zerospace.darwinModules.default
-        { services.zerospace.enable = true; }
+        {
+          services.zerospace.enable = true;
+          # The default, spelled out: macOS's Switch to Desktop 1 to 5 shortcuts
+          # off, so cmd+1 to cmd+5 reach ZeroSpace
+          services.zerospace.disableSwitchToDesktopShortcuts = true;
+          # nix-darwin's own option: keep desktops in order, so the numbers stay
+          system.defaults.dock.mru-spaces = false;
+        }
         # your configuration, with system.primaryUser set
       ];
     };
@@ -207,7 +214,11 @@ The module installs ZeroSpace and starts the same login agent as `build.sh`,
 for `system.primaryUser`, with the same log. Allow Accessibility when it asks.
 It also turns off macOS's Switch to Desktop 1 to 5 shortcuts, and only those, so
 they can't take cmd+1 to cmd+5 first; set
-`services.zerospace.disableDesktopShortcuts = false` to leave them alone.
+`services.zerospace.disableSwitchToDesktopShortcuts = false` to leave them
+alone. nix-darwin has no option for keyboard shortcuts, and writing them through
+`system.defaults.CustomUserPreferences` would replace the whole list, so the
+module changes just these five. Rearranging desktops does have a nix-darwin
+option, `system.defaults.dock.mru-spaces`, set in the example above.
 Nix builds are signed ad hoc, so macOS asks for Accessibility again whenever an
 update changes the binary. If you used `build.sh` before, stop and remove that
 copy first, as below. To remove the nix one, take the module out and switch
