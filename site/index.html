@@ -66,7 +66,7 @@
 <section class="hero">
   <div class="wrap hero-text">
     <img class="hero-icon" src="icon.svg" width="112" height="112" alt="ZeroSpace's icon: a sliding desktop, cut by a bright blade into an instant one">
-    <p class="kicker">ZeroSpace 1.0, a desktop switcher for macOS 27</p>
+    <p class="kicker">ZeroSpace 1.1, a desktop switcher for macOS 27</p>
     <h1>No slide, no fade;<br>the desktop is simply there.</h1>
     <p class="lede">ZeroSpace switches macOS desktops with no animation at all. Press <kbd>cmd</kbd> and a number from <kbd>1</kbd> to <span class="nw"><kbd>5</kbd>,</span> and that desktop is there, full-screen apps included; another shortcut carries the focused window one desktop over and follows it.</p>
     <div class="actions">
@@ -224,7 +224,7 @@ printf 'state' | nc -U ~/.cache/zerospace.sock</code></pre></div>
   <div class="section-head">
     <p class="kicker">Install</p>
     <h2>Build it on your Mac</h2>
-    <p>ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 on Apple Silicon. Building it takes Rust and the Xcode Command Line Tools.</p>
+    <p>ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 and 26.7.1 on Apple Silicon. Building it takes Rust and the Xcode Command Line Tools.</p>
   </div>
   <div class="install-grid with-wide">
     <div class="card install-item">
@@ -268,7 +268,7 @@ rm -r ~/Applications/ZeroSpace.app</code></pre></div>
     <h2>Worth knowing first</h2>
   </div>
   <ul class="limits">
-    <li>ZeroSpace has only been tested on macOS 27.0.1 on Apple Silicon, with one display. With several, it is meant to act on the display under the pointer, but that is untested.</li>
+    <li>ZeroSpace has only been tested on macOS 27.0.1 and 26.7.1 on Apple Silicon, with one display. With several, it is meant to act on the display under the pointer, but that is untested.</li>
     <li>The bridged operations are private and undocumented, so a macOS update can change or remove them. ZeroSpace checks for them when it starts and logs it when they are missing; then the keys stop switching.</li>
     <li>It cannot create, remove or reorder desktops; Mission Control does that.</li>
     <li>Five desktops are on the keys. The socket&rsquo;s <code>go</code> reaches the rest.</li>
@@ -281,7 +281,7 @@ rm -r ~/Applications/ZeroSpace.app</code></pre></div>
 
 <footer class="foot">
   <div class="wrap foot-row">
-    <p>ZeroSpace 1.0 is free software under the <a href="https://github.com/crazyboycjr/zerospace/blob/main/LICENSE">MIT License</a>. <a href="https://github.com/crazyboycjr/zerospace">Source</a> · <a href="https://github.com/crazyboycjr/zerospace/blob/main/CHANGELOG.md">Changes</a> · <a href="https://crazyboycjr.github.io/xsp/">xsp</a></p>
+    <p>ZeroSpace 1.1 is free software under the <a href="https://github.com/crazyboycjr/zerospace/blob/main/LICENSE">MIT License</a>. <a href="https://github.com/crazyboycjr/zerospace">Source</a> · <a href="https://github.com/crazyboycjr/zerospace/blob/main/CHANGELOG.md">Changes</a> · <a href="https://crazyboycjr.github.io/xsp/">xsp</a></p>
     <p class="credits">The pictures on this page are drawn, not recorded. Type is set in Literata, Noto Sans and JetBrains Mono, under the SIL Open Font License.</p>
   </div>
 </footer>

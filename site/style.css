@@ -376,7 +376,7 @@ figure { margin: 0; }
   box-shadow: var(--shadow-soft);
 }
 
-/* The keys: three cards, each a family of shortcuts. */
+/* The keys: two cards, each a family of shortcuts. */
 .key-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 36px; }
 .key-card { padding: 24px 26px 26px; display: flex; flex-direction: column; }
 .key-card .keys { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 36px; font-size: 19px; color: var(--muted); --code-size: 15px; }
