@@ -1,7 +1,6 @@
 //! ZeroSpace: switch macOS desktops instantly and send windows between them, with no animation.
 //!
 //!   cmd+1..5               go to desktop N
-//!   cmd+shift+1..5         send the focused window to desktop N and stay
 //!   cmd+shift+left/right   take the focused window one desktop over and follow it
 //!
 //! Desktops are switched and windows moved with SkyLight's bridged window-management
@@ -11,8 +10,8 @@
 //! these operations, and InstantSpaceSwitcher PR #110 by apellis
 //! (https://github.com/jurplel/InstantSpaceSwitcher/pull/110).
 //!
-//! A Unix socket at ~/.cache/zerospace.sock takes the same actions as text ("go 2", "send 3",
-//! "carry right", "state"), for scripts and for testing over ssh.
+//! A Unix socket at ~/.cache/zerospace.sock takes the same actions as text ("go 2", "carry right",
+//! "state"), plus "send 3" (send the focused window to desktop 3 and stay), which has no hot key.
 
 mod sys;
 
@@ -708,7 +707,6 @@ extern "C" fn hot_key_pressed(_next: *mut c_void, event: *mut c_void, _data: *mu
     }
     let result = match key.id {
         1..=9 => go_to_desktop(key.id as usize - 1),
-        11..=19 => send_to_desktop(key.id as usize - 11),
         21 => carry(-1),
         _ => carry(1),
     };
@@ -729,9 +727,11 @@ fn register_hot_keys() {
                 log(&format!("could not register hot key {id}: {status}"));
             }
         };
+        // cmd+shift+1..5 stay free: cmd+shift+3, 4 and 5 are macOS's screenshot keys, and the
+        // system takes its own shortcuts before Carbon hot keys. Sending to a desktop by number
+        // is the socket's `send N`.
         for (i, code) in [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5].into_iter().enumerate() {
             register(code, cmdKey, i as u32 + 1);
-            register(code, cmdKey | shiftKey, i as u32 + 11);
         }
         register(kVK_LeftArrow, cmdKey | shiftKey, 21);
         register(kVK_RightArrow, cmdKey | shiftKey, 22);

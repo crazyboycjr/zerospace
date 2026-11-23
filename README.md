@@ -64,8 +64,8 @@ slide and no fade, not even a quick one.
 - **No animation.** The window server makes the switch itself, so there is
   nothing to animate. The desktop's number flashes in the middle of the screen
   for half a second, so you know where you landed.
-- **Windows come along.** Send the focused window to another desktop and stay
-  where you are, or carry it one desktop over and follow it.
+- **Windows come along.** Carry the focused window one desktop over and follow
+  it.
 - **SIP stays on.** There is no scripting addition, nothing is loaded into the
   Dock, and nothing in macOS is changed; ZeroSpace needs only Accessibility
   access.
@@ -78,23 +78,19 @@ slide and no fade, not even a quick one.
 <kbd>cmd</kbd> <kbd>1</kbd> to <kbd>cmd</kbd> <kbd>5</kbd> jump straight to desktop 1 to 5,
 and its number flashes in the middle of the screen for half a second.
 
-<kbd>cmd</kbd> <kbd>shift</kbd> <kbd>1</kbd> to <kbd>5</kbd> send the focused window to that
-desktop while you stay where you are. The flash points the way the window went,
-←2 or →4, and the window is in front when you next switch there with ZeroSpace.
-
 <kbd>cmd</kbd> <kbd>shift</kbd> <kbd>←</kbd> and <kbd>→</kbd> carry the focused window one
 desktop over and follow it.
 
 Desktops are numbered by their place in the Mission Control bar of the display
 under the pointer, full-screen apps included, so cmd+3 always reaches whatever
-sits third. A window cannot go into a full-screen app, so cmd+shift+3 refuses
-that slot, and carrying a window steps over it.
+sits third. A window cannot go into a full-screen app, so carrying a window
+steps over it.
 
 <picture>
   <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="docs/readme-slots-tall-dark.svg">
   <source media="(max-width: 600px)" srcset="docs/readme-slots-tall-light.svg">
   <source media="(prefers-color-scheme: dark)" srcset="docs/readme-slots-dark.svg">
-  <img src="docs/readme-slots-light.svg" width="100%" alt="Five Mission Control thumbnails in a row: Desktop 1, Desktop 2, a full-screen app, Desktop 3 and Desktop 4, with cmd and 1 to cmd and 5 under them in order, so cmd and 3 goes to the full-screen app. A note says a window cannot be sent into it, and carrying a window steps over it.">
+  <img src="docs/readme-slots-light.svg" width="100%" alt="Five Mission Control thumbnails in a row: Desktop 1, Desktop 2, a full-screen app, Desktop 3 and Desktop 4, with cmd and 1 to cmd and 5 under them in order, so cmd and 3 goes to the full-screen app. A note says a window cannot go into it: carrying one with cmd, shift and an arrow steps over it.">
 </picture>
 
 Once a switch has landed, the frontmost window on the new desktop gets the
@@ -103,11 +99,9 @@ keyboard, as macOS would give it, and an empty desktop gives it to Finder.
 While ZeroSpace runs, the app in front no longer gets these shortcuts: a
 browser's cmd+1 for its first tab, or cmd+shift+← to select to the start of a
 line. macOS's own shortcuts come first, though: its Switch to Desktop shortcuts
-on cmd+1 to cmd+5 keep those keys from ZeroSpace (see Install), and its
-screenshot shortcuts on cmd+shift+3, 4 and 5 should win the same way. If one
-takes a screenshot instead of sending the window, turn the screenshot shortcuts
-off, or move them, in System Settings, Keyboard, Keyboard Shortcuts,
-Screenshots. The keys are set in `register_hot_keys` in `src/main.rs`.
+on cmd+1 to cmd+5 keep those keys from ZeroSpace (see Install). cmd+shift with a
+number is left alone, so the screenshot shortcuts on cmd+shift+3, 4 and 5 keep
+working.
 
 ## How it works
 

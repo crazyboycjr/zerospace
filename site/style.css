@@ -377,26 +377,12 @@ figure { margin: 0; }
 }
 
 /* The keys: three cards, each a family of shortcuts. */
-.key-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 36px; }
+.key-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 36px; }
 .key-card { padding: 24px 26px 26px; display: flex; flex-direction: column; }
 .key-card .keys { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 36px; font-size: 19px; color: var(--muted); --code-size: 15px; }
 .key-card .keys .to { font-size: var(--fs-s); margin: 0 2px; }
 .key-card h3 { margin-top: 18px; }
 .key-card p { margin-top: 8px; font-size: var(--fs-s); line-height: 1.58; color: var(--ink-2); }
-.osd-chip {
-  display: inline-block;
-  margin: 0 2px;
-  padding: 0.06em 0.5em;
-  border-radius: 7px;
-  background: #15120f;
-  color: #fff;
-  font: 700 13px/1.45 var(--font-text);
-  white-space: nowrap;
-}
-:root[data-theme="dark"] .osd-chip { background: #f1e8db; color: #1b1712; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .osd-chip { background: #f1e8db; color: #1b1712; }
-}
 .note { margin-top: 28px; max-width: 860px; font-size: var(--fs-s); color: var(--ink-2); }
 .note + .note { margin-top: 10px; }
 

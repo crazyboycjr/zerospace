@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0 (2026-11-23)
+
+cmd+shift+1 to cmd+shift+5 no longer send the focused window to a desktop.
+macOS uses cmd+shift+3, 4 and 5 for screenshots and handles its own shortcuts
+before ZeroSpace's, so three of those five keys could never send a window
+unless the screenshot shortcuts were turned off. Now the screenshot shortcuts
+keep working with nothing to turn off. cmd+shift+← and → still carry the focused window one
+desktop over and follow it, and the socket's `send N` still sends a window to
+a desktop and stays, for scripts.
+
+Update with nix-darwin as before (`nix flake update zerospace`, then
+`darwin-rebuild switch`), or rebuild with `sh build.sh`.
+
 ## 1.0.0 (2026-10-31)
 
 The first public release: ZeroSpace switches macOS desktops with no animation
