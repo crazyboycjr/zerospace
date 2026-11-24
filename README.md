@@ -139,42 +139,10 @@ by apellis, which uses them to carry a dragged window across a switch.
 
 ## Install
 
-ZeroSpace has been tested on macOS 27.0.1 and 26.7.1, on Apple Silicon.
-Building it takes Rust and the Xcode Command Line Tools (`xcode-select
---install`).
-
-```sh
-git clone https://github.com/crazyboycjr/zerospace
-cd zerospace
-sh build.sh
-```
-
-`build.sh` builds with cargo, installs `~/Applications/ZeroSpace.app`, signs it,
-and starts it as the login agent `xyz.crazyboycjr.zerospace`, which runs it at
-every login, keeps it running, and logs to `~/Library/Logs/ZeroSpace.log`. The
-first start asks for Accessibility access; allow it in System Settings, Privacy
-& Security, Accessibility.
-
-Add the desktops you want in Mission Control, and turn off "Automatically
-rearrange Spaces based on most recent use" in System Settings, Desktop & Dock,
-so the numbers stay where they are.
-
-Turn off macOS's own Switch to Desktop shortcuts as well, in System Settings,
-Keyboard, Keyboard Shortcuts, Mission Control. macOS handles them before any
-app, so if they use cmd+1 to cmd+5, ZeroSpace never sees those keys and the
-desktops slide as before. The nix-darwin module below does this for you.
-
-### Install with nix-darwin
-
-The repository is also a Nix flake for Apple Silicon. To try a build without
-installing anything:
-
-```sh
-nix build github:crazyboycjr/zerospace
-```
-
-The app is then `result/Applications/ZeroSpace.app`. To install it, add the
-flake to your nix-darwin configuration and turn on its module:
+ZeroSpace has been tested on macOS 27.0.1 and 26.7.1, on Apple Silicon. It
+installs with [nix-darwin](https://github.com/nix-darwin/nix-darwin) from this
+repository, which is a Nix flake. Add the flake to your nix-darwin
+configuration and turn on its module:
 
 ```nix
 {
@@ -204,59 +172,40 @@ flake to your nix-darwin configuration and turn on its module:
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin
 ```
 
-The module installs ZeroSpace and starts the same login agent as `build.sh`,
-for `system.primaryUser`, with the same log. Allow Accessibility when it asks.
-It also turns off macOS's Switch to Desktop 1 to 5 shortcuts, and only those, so
-they can't take cmd+1 to cmd+5 first; set
+The module installs ZeroSpace and starts it as a login agent for
+`system.primaryUser`, which runs it at every login, keeps it running, and logs
+to `~/Library/Logs/ZeroSpace.log`. The build needs `apple-sdk_26` from
+nixpkgs; if yours is older, drop the `follows` line, and the flake builds with
+the nixpkgs it pins.
+
+**Permissions.** The first start asks for Accessibility access; allow it in
+System Settings, Privacy & Security, Accessibility. Nix builds are signed ad
+hoc, so macOS asks for Accessibility again whenever an update changes the
+binary.
+
+**Desktops.** Add the desktops you want in Mission Control, and keep them in
+order, so the numbers stay where they are: turn off "Automatically rearrange
+Spaces based on most recent use" in System Settings, Desktop & Dock, or set
+nix-darwin's own option for it, `system.defaults.dock.mru-spaces = false`, as
+in the example above.
+
+**macOS's own shortcuts.** macOS handles its Switch to Desktop shortcuts before
+any app, so if they use cmd+1 to cmd+5, ZeroSpace never sees those keys and the
+desktops slide as before. The module turns off the Switch to Desktop 1 to 5
+shortcuts, and only those; set
 `services.zerospace.disableSwitchToDesktopShortcuts = false` to leave them
 alone. nix-darwin has no option for keyboard shortcuts, and writing them through
 `system.defaults.CustomUserPreferences` would replace the whole list, so the
-module changes just these five. Rearranging desktops does have a nix-darwin
-option, `system.defaults.dock.mru-spaces`, set in the example above.
-Nix builds are signed ad hoc, so macOS asks for Accessibility again whenever an
-update changes the binary. If you used `build.sh` before, stop and remove that
-copy first, as below. To remove the nix one, take the module out and switch
-again. The build needs `apple-sdk_26` from nixpkgs; if yours is older, drop the
-`follows` line, and the flake builds with the nixpkgs it pins.
+module changes just these five.
 
-### Signing
+**Update** with `nix flake update zerospace` and switch again. **To remove
+ZeroSpace**, take the module out and switch again, and take ZeroSpace out of
+System Settings, Privacy & Security, Accessibility. The Switch to Desktop
+shortcuts stay off until you turn them on again in System Settings, Keyboard,
+Keyboard Shortcuts, Mission Control.
 
-`build.sh` signs ad hoc unless told otherwise. That works, but an ad hoc
-signature changes with every build, and macOS then takes ZeroSpace for a new app
-and asks for Accessibility again. A self-signed certificate keeps the grant
-across builds:
-
-1. Open Keychain Access from Spotlight; since macOS 15 it is no longer in
-   Utilities. Choose Keychain Access, Certificate Assistant, Create a
-   Certificate.
-2. Name it, for example Local Code Signing, with Identity Type Self-Signed Root
-   and Certificate Type Code Signing.
-3. Build with it:
-
-```sh
-CODESIGN_IDENTITY="Local Code Signing" sh build.sh
-```
-
-The first build with it asks whether codesign may use the key; choose Always
-Allow. If ZeroSpace was built ad hoc before, its old entry in System Settings,
-Privacy & Security, Accessibility stays ticked but no longer counts: remove it
-with the minus button and allow ZeroSpace again.
-
-To keep the setting, put the line `CODESIGN_IDENTITY="Local Code Signing"` in
-`signing.env` beside `build.sh`, which git ignores. Where the login keychain is
-locked, as over ssh, keep the certificate in a keychain of its own, give the
-keychain's path in `CODESIGN_KEYCHAIN` and its password in
-`CODESIGN_KEYCHAIN_PASSWORD`.
-
-### Stop and remove
-
-```sh
-launchctl bootout gui/$(id -u)/xyz.crazyboycjr.zerospace
-rm ~/Library/LaunchAgents/xyz.crazyboycjr.zerospace.plist
-rm -r ~/Applications/ZeroSpace.app
-```
-
-Then take ZeroSpace out of System Settings, Privacy & Security, Accessibility.
+To build ZeroSpace from source instead, see
+[Building ZeroSpace](docs/building.md).
 
 ## Scripting
 
@@ -291,7 +240,8 @@ scratchpad to the desktop you are on.
 - It cannot create, remove or reorder desktops; Mission Control does that.
 - Five desktops are on the keys; the socket's `go` reaches the rest.
 - The shortcuts are fixed in the source; to change them, edit
-  `register_hot_keys` in `src/main.rs` and build again.
+  `register_hot_keys` in `src/main.rs` and
+  [build ZeroSpace yourself](docs/building.md).
 - There is no tiling or window layout; for that, yabai and AeroSpace do far
   more.
 

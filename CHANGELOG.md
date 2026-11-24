@@ -25,8 +25,8 @@ sh build.sh
 ```
 
 Allow Accessibility when macOS asks. To keep that permission across builds, sign
-with a certificate of your own through `CODESIGN_IDENTITY`; the README's
-[Signing](README.md#signing) section shows how.
+with a certificate of your own through `CODESIGN_IDENTITY`; the
+[Signing](docs/building.md#signing) section of Building ZeroSpace shows how.
 
 ZeroSpace switches desktops through the window server's private bridged
 operations, which macOS 27 accepts from an app with Accessibility access while
