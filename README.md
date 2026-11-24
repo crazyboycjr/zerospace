@@ -123,9 +123,9 @@ and the desktop simply changes.
 The operations land a moment after they are sent, so before it focuses anything
 on the new desktop, ZeroSpace waits for the display to report it as current, for
 up to about 150 ms, and then picks the frontmost window from the list of windows
-on screen, which leaves out hidden and minimized windows. A window moved with
-cmd+shift+N lands behind the windows already on that desktop, so ZeroSpace
-remembers it and raises it when you next switch there with ZeroSpace.
+on screen, which leaves out hidden and minimized windows. A window sent with the
+socket's `send N` lands behind the windows already on that desktop, so
+ZeroSpace remembers it and raises it when you next switch there with ZeroSpace.
 
 The number in the middle of the screen is a borderless window kept on every
 desktop and made visible for half a second, so it shows on the desktop you land
