@@ -43,8 +43,8 @@ app that does this one thing.
 It turned out that macOS 27 will switch desktops instantly for any app with
 Accessibility access, through private operations in its window server, with SIP
 left on. So I built ZeroSpace around them: cmd+1 to cmd+5 jump straight to a
-desktop, and two more shortcuts throw the focused window to another desktop,
-staying put or following it. I designed and wrote it with an AI coding agent,
+desktop, and cmd+shift with an arrow carries the focused window to the next
+one and follows it. I designed and wrote it with an AI coding agent,
 Claude; most of the work was finding the right private operations, not writing
 the code.
 
