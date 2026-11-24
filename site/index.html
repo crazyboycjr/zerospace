@@ -140,7 +140,7 @@
       <p>Take the focused window one desktop over and follow it, stepping over full-screen apps, which cannot hold another window.</p>
     </div>
   </div>
-  <p class="note">While ZeroSpace runs, the app in front no longer gets these shortcuts: a browser&rsquo;s <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>1</kbd></span> for its first tab, or <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>shift</kbd>&#8202;<kbd class="arrow">←</kbd></span> to select to the start of a line. macOS&rsquo;s own shortcuts come first, though: its Switch to Desktop shortcuts on <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>1</kbd></span> to <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>5</kbd></span> keep those keys from ZeroSpace, so turn them off in System Settings, Keyboard, Keyboard Shortcuts, Mission Control. <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>shift</kbd></span> with a number is left alone, so the screenshot shortcuts on <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>shift</kbd>&#8202;<kbd>3</kbd>,</span> <kbd>4</kbd> and <kbd>5</kbd> keep working.</p>
+  <p class="note">While ZeroSpace runs, the app in front no longer gets these shortcuts: a browser&rsquo;s <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>1</kbd></span> for its first tab, or <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>shift</kbd>&#8202;<kbd class="arrow">←</kbd></span> to select to the start of a line. macOS&rsquo;s own shortcuts come first, though: its Switch to Desktop shortcuts on <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>1</kbd></span> to <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>5</kbd></span> keep those keys from ZeroSpace, so turn them off in System Settings, Keyboard, Keyboard Shortcuts, Mission Control, or let the nix-darwin module do it. <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>shift</kbd></span> with a number is left alone, so the screenshot shortcuts on <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>shift</kbd>&#8202;<kbd>3</kbd>,</span> <kbd>4</kbd> and <kbd>5</kbd> keep working.</p>
 </section>
 
 <section class="feature wrap" id="slots">
@@ -214,7 +214,7 @@ printf 'state' | nc -U ~/.cache/zerospace.sock</code></pre></div>
     <img src="media/xsp-icon.svg" width="84" height="84" alt="">
     <div>
       <h3>xsp</h3>
-      <p>xmonad&rsquo;s scratchpads for macOS: Alacritty on <span class="nw"><kbd>f1</kbd>,</span> <kbd>f3</kbd> and <span class="nw"><kbd>f4</kbd>.</span> It uses <code>state</code> and <code>move</code> to bring a pad to the desktop you are on.</p>
+      <p>xmonad&rsquo;s scratchpads for macOS: Alacritty terminals, or any app, each on a key of its own. It uses <code>state</code> and <code>move</code> to bring a pad to the desktop you are on.</p>
     </div>
     <span class="go">xsp&rsquo;s homepage</span>
   </a>
@@ -223,43 +223,60 @@ printf 'state' | nc -U ~/.cache/zerospace.sock</code></pre></div>
 <section class="feature wrap" id="install">
   <div class="section-head">
     <p class="kicker">Install</p>
-    <h2>Build it on your Mac</h2>
-    <p>ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 and 26.7.1 on Apple Silicon. Building it takes Rust and the Xcode Command Line Tools.</p>
+    <h2>Install it with nix-darwin</h2>
+    <p>ZeroSpace is made for macOS 27, and has been tested on macOS 27.0.1 and 26.7.1 on Apple Silicon. It installs with nix-darwin from its repository, which is a Nix flake.</p>
   </div>
-  <div class="install-grid with-wide">
-    <div class="card install-item">
-      <header><h3>Build and start</h3><button class="copy" type="button">Copy</button></header>
-      <div class="code"><pre><code>git clone https://github.com/crazyboycjr/zerospace
-cd zerospace
-sh build.sh</code></pre></div>
-      <p><code>build.sh</code> installs <code>~/Applications/ZeroSpace.app</code> and starts it as a login agent, <code>xyz.crazyboycjr.zerospace</code>, which logs to <code>~/Library/Logs/ZeroSpace.log</code>. Allow Accessibility when macOS asks.</p>
-    </div>
-    <div class="card install-item">
-      <header><h3>Stop and remove</h3><button class="copy" type="button">Copy</button></header>
-      <div class="code"><pre><code>launchctl bootout gui/$(id -u)/xyz.crazyboycjr.zerospace
-rm ~/Library/LaunchAgents/xyz.crazyboycjr.zerospace.plist
-rm -r ~/Applications/ZeroSpace.app</code></pre></div>
-      <p>Then take ZeroSpace out of System Settings, Privacy &amp; Security, Accessibility.</p>
-    </div>
+  <div class="install-grid wide-first">
     <div class="card install-item install-wide">
-      <header><h3>Keep the permission across builds</h3><button class="copy" type="button">Copy</button></header>
+      <header><h3>Add ZeroSpace to nix-darwin</h3><button class="copy" type="button">Copy</button></header>
       <div class="wide-body">
         <div>
-          <div class="code"><pre><code>CODESIGN_IDENTITY="Local Code Signing" sh build.sh</code></pre></div>
-          <p>An ad hoc signature changes with every build, and macOS then asks for Accessibility again. A self-signed certificate, made once, keeps the grant.</p>
+          <div class="code"><pre><code>{
+  inputs.zerospace.url = "github:crazyboycjr/zerospace";
+  inputs.zerospace.inputs.nixpkgs.follows = "nixpkgs";
+
+  outputs = { nix-darwin, zerospace, ... }: {
+    darwinConfigurations.my-mac = nix-darwin.lib.darwinSystem {
+      modules = [
+        zerospace.darwinModules.default
+        {
+          services.zerospace.enable = true;
+          # The default, spelled out: macOS's Switch to Desktop
+          # 1 to 5 shortcuts off, so cmd+1 to cmd+5 reach ZeroSpace
+          services.zerospace.disableSwitchToDesktopShortcuts = true;
+          # nix-darwin's own option: keep desktops in order, so
+          # the numbers stay
+          system.defaults.dock.mru-spaces = false;
+        }
+        # your configuration, with system.primaryUser set
+      ];
+    };
+  };
+}</code></pre></div>
         </div>
         <div>
           <ol>
-            <li>Open Keychain Access from Spotlight; since macOS 15 it is no longer in Utilities. Choose Keychain Access, Certificate Assistant, Create a Certificate.</li>
-            <li>Name it, say Local Code Signing, as a self-signed root of type Code Signing.</li>
-            <li>Build with its name, as shown, or put the line <code>CODESIGN_IDENTITY="Local Code Signing"</code> in <code>signing.env</code> beside <code>build.sh</code>.</li>
+            <li>Add the flake and turn on its module in your nix-darwin configuration, as here, beside your own modules.</li>
+            <li>Switch to it: <code>sudo darwin-rebuild switch --flake ~/.config/nix-darwin</code>.</li>
+            <li>Allow Accessibility when ZeroSpace asks, in System Settings, Privacy &amp; Security, Accessibility.</li>
           </ol>
-          <p>The first build with it asks whether codesign may use the key; choose Always Allow. After an ad hoc build, ZeroSpace&rsquo;s old entry in Accessibility stays ticked but no longer counts: remove it with the minus button and allow ZeroSpace again.</p>
-          <p>Where the login keychain is locked, as over ssh, keep the certificate in a keychain of its own: give the keychain&rsquo;s path in <code>CODESIGN_KEYCHAIN</code> and its password in <code>CODESIGN_KEYCHAIN_PASSWORD</code>. Both can live in <code>signing.env</code>, which git ignores.</p>
+          <p>The module installs ZeroSpace and starts it as a login agent, which logs to <code>~/Library/Logs/ZeroSpace.log</code>. It also turns off macOS&rsquo;s Switch to Desktop 1 to 5 shortcuts, and only those, since macOS handles them before any app and they would keep <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>1</kbd></span> to <span class="nw"><kbd>cmd</kbd>&#8202;<kbd>5</kbd></span> from ZeroSpace. If your nixpkgs has no <code>apple-sdk_26</code>, drop the <code>follows</code> line, and the flake builds with the nixpkgs it pins.</p>
         </div>
       </div>
     </div>
+    <div class="card install-item">
+      <header><h3>Desktops and permission</h3></header>
+      <p>Add the desktops you want in Mission Control. With <code>mru-spaces</code> off, as here, macOS keeps them in order, so the numbers stay where they are; System Settings calls it &ldquo;Automatically rearrange Spaces based on most recent use&rdquo;, under Desktop &amp; Dock.</p>
+      <p>Nix builds are signed ad hoc, so macOS asks for Accessibility again whenever an update changes ZeroSpace.</p>
+    </div>
+    <div class="card install-item">
+      <header><h3>Update and remove</h3><button class="copy" type="button">Copy</button></header>
+      <div class="code"><pre><code>nix flake update zerospace
+sudo darwin-rebuild switch --flake ~/.config/nix-darwin</code></pre></div>
+      <p>To remove ZeroSpace, take the module out and switch again, and take ZeroSpace out of Accessibility. The Switch to Desktop shortcuts stay off until you turn them on again in System Settings, Keyboard, Keyboard Shortcuts, Mission Control.</p>
+    </div>
   </div>
+  <p class="note">To build ZeroSpace from source, or sign it with a certificate of your own, see <a href="https://github.com/crazyboycjr/zerospace/blob/main/docs/building.md">Building ZeroSpace</a>.</p>
 </section>
 
 <section class="feature wrap" id="limits">
@@ -273,7 +290,7 @@ rm -r ~/Applications/ZeroSpace.app</code></pre></div>
     <li>It cannot create, remove or reorder desktops; Mission Control does that.</li>
     <li>Five desktops are on the keys. The socket&rsquo;s <code>go</code> reaches the rest.</li>
     <li>There is no tiling or window layout; for that, yabai and AeroSpace do far more.</li>
-    <li>The shortcuts are fixed in the source; to change them, edit <code>register_hot_keys</code> and build again.</li>
+    <li>The shortcuts are fixed in the source; to change them, edit <code>register_hot_keys</code> and <a href="https://github.com/crazyboycjr/zerospace/blob/main/docs/building.md">build ZeroSpace yourself</a>.</li>
   </ul>
 </section>
 
@@ -281,7 +298,7 @@ rm -r ~/Applications/ZeroSpace.app</code></pre></div>
 
 <footer class="foot">
   <div class="wrap foot-row">
-    <p>ZeroSpace 1.1 is free software under the <a href="https://github.com/crazyboycjr/zerospace/blob/main/LICENSE">MIT License</a>. <a href="https://github.com/crazyboycjr/zerospace">Source</a> · <a href="https://github.com/crazyboycjr/zerospace/blob/main/CHANGELOG.md">Changes</a> · <a href="https://crazyboycjr.github.io/xsp/">xsp</a></p>
+    <p>ZeroSpace 1.1 is free software under the <a href="https://github.com/crazyboycjr/zerospace/blob/main/LICENSE">MIT License</a>. <a href="https://github.com/crazyboycjr/zerospace">Source</a> · <a href="https://github.com/crazyboycjr/zerospace/blob/main/CHANGELOG.md">Changes</a> · <a href="https://github.com/crazyboycjr/zerospace/blob/main/docs/building.md">Building from source</a> · <a href="https://crazyboycjr.github.io/xsp/">xsp</a></p>
     <p class="credits">The pictures on this page are drawn, not recorded. Type is set in Literata, Noto Sans and JetBrains Mono, under the SIL Open Font License.</p>
   </div>
 </footer>
